@@ -1,0 +1,572 @@
+<title>Context repo pro agentický vývoj</title>
+<style>
+  :root{
+    --cyan:#83E1FF; --cyan6:#0C87B8; --cyanink:#04222E; --cyan50:#EAF9FF;
+    --ink:#0A0A0B; --white:#fff;
+    --g50:#F7F7F8; --g100:#F4F4F5; --g200:#EBEBEF; --g300:#D4D4D8; --g400:#A1A1AA; --g500:#71717A; --g600:#52525B; --g700:#3F3F46;
+    --bg:#F4F4F5; --surface:#fff; --surface2:#F7F7F8; --border:#EBEBEF; --bstrong:#D4D4D8;
+    --text:#0A0A0B; --t2:#52525B; --t3:#A1A1AA;
+    --why:#8B5CF6; --what:#0C87B8; --how:#0EA5A4; --dec:#D97706; --work:#DB2777; --build:#16A34A; --ext:#71717A; --entry:#0EA5A4;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --head:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:"Geist Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1020px;margin:0 auto;padding:44px 24px 96px}
+  .kicker{font-family:var(--mono);font-weight:200;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin:0 0 14px}
+  h1{font-family:var(--head);font-weight:800;font-size:clamp(28px,4.6vw,42px);line-height:1.05;letter-spacing:-.01em;margin:0 0 16px;color:#fff}
+  .hero{background:var(--ink);padding:40px;position:relative;overflow:hidden}
+  .hero p{color:var(--g300);max-width:70ch}
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.15;pointer-events:none}
+  .blob.a{width:300px;height:300px;background:#83E1FF;right:-60px;top:-100px}
+
+  /* layer section */
+  .layer{margin-top:48px}
+  .lhead{display:flex;align-items:center;gap:11px;margin-bottom:4px;border-bottom:2px solid var(--c);padding-bottom:9px}
+  .lhead .badge{font-family:var(--sans);font-weight:700;font-size:11px;color:#fff;background:var(--c);padding:3px 9px;letter-spacing:.03em}
+  .lhead h2{font-family:var(--head);font-weight:800;font-size:22px;margin:0;letter-spacing:-.01em}
+  .lhead .dir{font-family:var(--mono);font-size:12px;color:var(--t3);margin-left:auto}
+
+  /* file card */
+  .file{background:var(--surface);border:1px solid var(--border);margin-top:16px;overflow:hidden}
+  .file .head{padding:15px 18px;border-left:4px solid var(--c)}
+  .file .path{font-family:var(--mono);font-size:13.5px;color:var(--text);font-weight:500}
+  .file .path .accent{color:var(--c)}
+  .file .purpose{font-size:13.5px;color:var(--t2);margin-top:6px}
+  .file .purpose b{color:var(--text)}
+  .ex-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);padding:0 18px;margin-top:4px}
+  pre{background:var(--ink);color:#E4E4E7;font-family:var(--mono);font-size:12px;line-height:1.7;padding:18px 20px;margin:8px 0 0;overflow-x:auto;white-space:pre}
+  pre .k{color:var(--cyan)}      /* yaml key */
+  pre .c{color:var(--g500)}      /* comment */
+  pre .hl{color:#FDDF74}         /* highlight value */
+  pre .h{color:#fff;font-weight:600} /* md heading */
+  pre .b{color:#FFA19F}          /* bold-ish / important */
+  pre .g{color:#B9F8BC}          /* green / ok */
+  .intro{margin-top:34px}
+  .intro p{color:var(--t2);max-width:74ch}
+  .note{font-size:12.5px;color:var(--t3);padding:10px 18px 16px;font-style:italic}
+  .foot{margin-top:60px;padding-top:18px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:.04em}
+  code{font-family:var(--mono);font-size:.92em;color:var(--cyan6)}
+  .sec{margin-top:50px}
+  .sec .sk{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan6);margin:0 0 6px}
+  .sec h2{font-family:var(--head);font-weight:800;font-size:23px;margin:0 0 14px;letter-spacing:-.01em}
+  .sec p{color:var(--t2);max-width:74ch}
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:6px 0 0}
+  ol.steps li{counter-increment:s;position:relative;padding:13px 0 13px 46px;border-bottom:1px solid var(--border)}
+  ol.steps li:last-child{border-bottom:0}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:12px;width:28px;height:28px;background:var(--ink);color:#fff;font-family:var(--head);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+  ol.steps b{color:var(--text)} ol.steps .d{font-size:13px;color:var(--t2);margin-top:2px}
+  .diagram{background:var(--surface);border:1px solid var(--border);padding:22px;margin-top:18px;overflow-x:auto}
+  .diagram svg{display:block;max-width:100%;height:auto;margin:0 auto}
+  .divider{margin-top:58px;border-top:2px solid var(--ink);padding-top:10px}
+  .divider .sk{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3);margin:0}
+  .divider h2{font-family:var(--head);font-weight:800;font-size:26px;margin:4px 0 0;letter-spacing:-.01em}
+</style>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="blob a"></div>
+    <p class="kicker">Struktura · proces · obsah souborů</p>
+    <h1>Context repo pro <span style="color:var(--cyan)">agentický vývoj</span></h1>
+    <p>Celkový obraz: jak je repo uspořádané, jak jím protéká práce, a co přesně je v každém <code style="color:var(--cyan)">.md</code> souboru. Společná pravidla: Markdown + YAML frontmatter, lidský souhrn nahoře, agentský detail pod ním, stabilní ID a křížové odkazy. Příklady na datech Smart Redirection.</p>
+  </div>
+
+  <!-- ===================== CELKOVÁ STRUKTURA ===================== -->
+  <div class="sec">
+    <p class="sk">1 — Přehled</p>
+    <h2>Celková struktura repozitáře</h2>
+    <p>Vrstva <code>context/</code> drží veškerý kontext pro agenta vedle kódu. Sedm složek odpovídá sedmi otázkám: proč, co, jak, proč zrovna takto, co dělat, jak to stavět a co je kolem.</p>
+    <pre><span class="k">&lt;service&gt;/</span>                       <span class="c"># repo služby (např. smart-redirection-node)</span>
+├─ AGENTS.md                      <span class="c"># vstup pro AGENTA: navigace + zlatá pravidla</span>
+├─ README.md                      <span class="c"># vstup pro ČLOVĚKA</span>
+│
+├─ <span class="k">context/</span>                       <span class="c"># ── AI KONTEXTOVÁ VRSTVA (zdroj pravdy) ──</span>
+│  ├─ <span class="k">product/</span>                     <span class="c"># PROČ — vision.md, glossary.md, ideas/</span>
+│  ├─ <span class="k">requirements/</span>                <span class="c"># CO — SR-REQ-*.md (1 soubor = 1 požadavek + AC)</span>
+│  ├─ <span class="k">architecture/</span>                <span class="c"># JAK — overview, domain-model, data-model, integrations</span>
+│  ├─ <span class="k">decisions/</span>                   <span class="c"># PROČ TAK — ADR-*.md (rationale trail)</span>
+│  ├─ <span class="k">stories/</span>                     <span class="c"># PRÁCE — SR-US-*.md → generuje ADO work item</span>
+│  ├─ <span class="k">conventions/</span>                 <span class="c"># STAVĚT — coding-standards, definition-of-done, guardrails</span>
+│  └─ <span class="k">external/</span>                    <span class="c"># SVĚT — výtahy o okolních službách</span>
+│
+├─ <span class="k">schema/</span>                        <span class="c"># JSON schémata pro validaci frontmatteru</span>
+├─ <span class="k">src/</span>  (core/ infrastructure/ interface/)   <span class="c"># samotný kód</span>
+└─ <span class="k">tests/</span></pre>
+  </div>
+
+  <!-- ===================== PROCES + DIAGRAM ===================== -->
+  <div class="sec">
+    <p class="sk">2 — Proces</p>
+    <h2>Jak repem protéká práce</h2>
+    <p>Smyčka spec-driven vývoje. Zdrojem pravdy je strukturované zadání v GITu; agent ho atomizuje, validuje, implementuje a vývojář schvaluje. Azure DevOps je status mirror, ne místo, kde se píše zadání.</p>
+    <ol class="steps">
+      <li><b>Zadání → atomizace.</b><div class="d">Agent převede prózu (PDF na Drive, Notion Návrh) na <code>requirements/*.md</code> + <code>decisions/*.md</code> s ID a traceability na zdroj (<code>source:</code>).</div></li>
+      <li><b>Validace struktury.</b><div class="d">Pre-commit hook + CI gate ověří frontmatter proti schématu a referenční integritu (<code>covers</code>/<code>depends_on</code>/<code>relates_to</code> ukazují na existující ID). Nevalidní kontext neprojde merge.</div></li>
+      <li><b>context/ = zdroj pravdy.</b><div class="d">GIT drží CO/JAK/PROČ. Je to baseline, proti kterému se měří změny i progress.</div></li>
+      <li><b>Generování práce do ADO.</b><div class="d">Ze story v GITu vznikne ADO work item — tenký ukazatel: lidský souhrn + odkaz na soubor v GITu. <b>GIT je master</b>, stav žije v ADO.</div></li>
+      <li><b>Agent implementuje.</b><div class="d">Kódovací agent čte navázaný requirement + jeho ADR + AGENTS.md, napíše kód a testy podle <code>acceptance_criteria</code>, otevře Pull Request.</div></li>
+      <li><b>Vývojář reviduje.</b><div class="d">Jediný povinný lidský krok. Spec i kód jsou v jednom diffu → reviewer vidí úplný kontext. Schválí → merge.</div></li>
+      <li><b>Zpětná vazba.</b><div class="d">Stav z ADO + <code>git diff requirements/</code> → progress proti pokrytí požadavků a change-log / scope audit zadarmo.</div></li>
+    </ol>
+
+    <div class="diagram">
+      <svg viewBox="0 0 760 560" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif" role="img" aria-label="Diagram procesu agentického vývoje">
+        <defs>
+          <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0C87B8"/></marker>
+        </defs>
+
+        <!-- main flow arrows -->
+        <line x1="220" y1="70"  x2="220" y2="88"  stroke="#0C87B8" stroke-width="2" marker-end="url(#ah)"/>
+        <line x1="220" y1="140" x2="220" y2="184" stroke="#0C87B8" stroke-width="2" marker-end="url(#ah)"/>
+        <line x1="220" y1="244" x2="220" y2="264" stroke="#0C87B8" stroke-width="2" marker-end="url(#ah)"/>
+        <line x1="220" y1="316" x2="220" y2="336" stroke="#0C87B8" stroke-width="2" marker-end="url(#ah)"/>
+        <line x1="220" y1="388" x2="220" y2="408" stroke="#0C87B8" stroke-width="2" marker-end="url(#ah)"/>
+        <line x1="220" y1="468" x2="220" y2="488" stroke="#0C87B8" stroke-width="2" marker-end="url(#ah)"/>
+
+        <!-- step 1 -->
+        <rect x="30" y="20" width="380" height="50" fill="#F4F4F5" stroke="#D4D4D8"/>
+        <text x="220" y="42" text-anchor="middle" font-size="13" font-weight="600" fill="#0A0A0B">Zadání</text>
+        <text x="220" y="58" text-anchor="middle" font-size="10.5" fill="#52525B">PDF (Drive) / Notion — próza</text>
+
+        <!-- step 2 -->
+        <rect x="30" y="90" width="380" height="50" fill="#FFFFFF" stroke="#D4D4D8"/>
+        <text x="220" y="112" text-anchor="middle" font-size="13" font-weight="600" fill="#0A0A0B">Agent atomizuje</text>
+        <text x="220" y="128" text-anchor="middle" font-size="10.5" fill="#52525B">→ requirements + decisions (ID, traceability)</text>
+
+        <!-- gate pill on arrow into context -->
+        <rect x="128" y="152" width="184" height="22" fill="#83E1FF"/>
+        <text x="220" y="167" text-anchor="middle" font-size="10.5" font-weight="600" fill="#04222E">validace struktury · CI / pre-commit gate</text>
+
+        <!-- step 3 context (emphasized) -->
+        <rect x="30" y="184" width="380" height="60" fill="#FFFFFF" stroke="#0C87B8" stroke-width="2"/>
+        <rect x="30" y="184" width="6" height="60" fill="#83E1FF"/>
+        <text x="220" y="208" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0A0A0B">context/ v GITu — ZDROJ PRAVDY</text>
+        <text x="220" y="226" text-anchor="middle" font-size="10.5" fill="#52525B">CO · JAK · PROČ · rozhodnutí · pravidla</text>
+
+        <!-- step 4 -->
+        <rect x="30" y="264" width="380" height="50" fill="#FFFFFF" stroke="#D4D4D8"/>
+        <text x="220" y="286" text-anchor="middle" font-size="13" font-weight="600" fill="#0A0A0B">Generování práce</text>
+        <text x="220" y="302" text-anchor="middle" font-size="10.5" fill="#52525B">story → ADO work item</text>
+
+        <!-- step 5 -->
+        <rect x="30" y="336" width="380" height="50" fill="#FFFFFF" stroke="#D4D4D8"/>
+        <text x="220" y="358" text-anchor="middle" font-size="13" font-weight="600" fill="#0A0A0B">Agent implementuje</text>
+        <text x="220" y="374" text-anchor="middle" font-size="10.5" fill="#52525B">kód + testy → Pull Request</text>
+
+        <!-- step 6 human (cyan) -->
+        <rect x="30" y="408" width="380" height="58" fill="#83E1FF"/>
+        <text x="220" y="432" text-anchor="middle" font-size="13.5" font-weight="700" fill="#04222E">Vývojář — review &amp; schválení</text>
+        <text x="220" y="450" text-anchor="middle" font-size="10.5" fill="#04222E">jediný povinný lidský krok</text>
+
+        <!-- step 7 -->
+        <rect x="30" y="488" width="380" height="50" fill="#0A0A0B"/>
+        <text x="220" y="517" text-anchor="middle" font-size="13" font-weight="600" fill="#FFFFFF">Merge → kód</text>
+
+        <!-- ADO side box -->
+        <rect x="480" y="264" width="250" height="78" fill="#FFFFFF" stroke="#A1A1AA" stroke-dasharray="5 4"/>
+        <text x="605" y="288" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0A0A0B">Azure DevOps</text>
+        <text x="605" y="306" text-anchor="middle" font-size="10.5" fill="#52525B">work item = ukazatel (GIT master)</text>
+        <text x="605" y="322" text-anchor="middle" font-size="10.5" fill="#D97706">stav žije zde → progress</text>
+        <!-- in arrow from step4 -->
+        <line x1="410" y1="289" x2="478" y2="289" stroke="#0C87B8" stroke-width="2" marker-end="url(#ah)"/>
+        <!-- feedback dashed back to step7 -->
+        <polyline points="605,342 605,513 412,513" fill="none" stroke="#A1A1AA" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+        <text x="600" y="430" text-anchor="middle" font-size="10" fill="#71717A" transform="rotate(90 600 430)">stav (live)</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ===================== DIVIDER → DETAILY ===================== -->
+  <div class="divider">
+    <p class="sk">3 — Detail</p>
+    <h2>Co je v každém souboru</h2>
+  </div>
+
+  <!-- ENTRY -->
+  <div class="layer" style="--c:var(--entry)">
+    <div class="lhead"><span class="badge">ENTRY</span><h2>Vstupní body</h2><span class="dir">/</span></div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path">AGENTS.md</div>
+        <div class="purpose"><b>První, co agent přečte.</b> Navigační mapa kontextu + zlatá pravidla. Krátké, odkazuje, neduplikuje. Načítá se automaticky.</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="h"># Smart Redirection — agent context</span>
+
+Mikroslužba, která automaticky přesměrovává zásilky na vhodnější PUDO.
+Záměr a hranice → <span class="hl">context/product/vision.md</span>
+
+<span class="h">## Mapa kontextu</span>
+- <span class="b">Co</span> stavíme → context/requirements/   (REQ s akceptačními kritérii)
+- <span class="b">Jak</span> → context/architecture/         (model, data, eventy)
+- <span class="b">Proč tak</span> → context/decisions/          (ADR — nevracej zamítnuté)
+- <span class="b">Práce</span> → context/stories/              (mapuje na ADO)
+- <span class="b">Pravidla</span> → context/conventions/        (standardy, DoD, guardrails)
+
+<span class="h">## Zlatá pravidla</span>
+1. Než začneš úkol: přečti navázaný requirement + jeho `relates_to` ADR.
+2. Nejednoznačné zadání → zeptej se, neimprovizuj (viz agent-guardrails.md).
+3. Po dokončení aktualizuj `status:` a `implemented_in:` v requirementu.
+4. Kód musí splnit `acceptance_criteria` — ne víc, ne míň.</pre>
+    </div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path">README.md</div>
+        <div class="purpose"><b>Vstup pro člověka.</b> Co služba je, jak ji lokálně spustit, kde je kontext. Krátké — detail je v <code>context/</code>.</div>
+      </div>
+      <div class="note">Čistě lidský dokument, agent ho nepotřebuje. Drž ho stručný a odkaž na AGENTS.md.</div>
+    </div>
+  </div>
+
+  <!-- WHY -->
+  <div class="layer" style="--c:var(--why)">
+    <div class="lhead"><span class="badge">PROČ</span><h2>Záměr a doména</h2><span class="dir">context/product/</span></div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">product/</span>vision.md</div>
+        <div class="purpose"><b>Proč služba existuje a kde jsou její hranice.</b> Cíl, koho/co řeší, a hlavně <b>co služba NEdělá</b> — bez toho agent neumí poznat, co je mimo scope.</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="k">status:</span> approved
+<span class="k">owner:</span> V. Kurfürst (DPD OOH)
+---
+<span class="h"># Vize — Smart Redirection</span>
+
+<span class="b">Souhrn:</span> Snížit náklady na OOH doručení a zvýšit vytíženost DPD boxů
+automatickým přesměrováním zásilek na vhodnější výdejní místo v okolí.
+
+<span class="h">## Cíle</span>
+- Přesměrovat zásilku na levnější/bližší PUDO ještě před výjezdem kurýra.
+- Preferovat DPD boxy před konkurenční sítí (úspora poplatku partnerovi).
+
+<span class="h">## Hranice (co služba NEdělá)</span>
+- <span class="b">Negarantuje rezervaci</span> — pracuje jen s aktuálně dostupnou kapacitou.
+- Neřeší fyzický svoz ani trasování kurýra (to je doména kurýrní sítě).
+- Neoptimalizuje spokojenost zákazníka — ta je jen výstupní metrika.</pre>
+    </div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">product/</span>glossary.md</div>
+        <div class="purpose"><b>Ubiquitous language.</b> Jednotné definice pojmů, které se používají v requirementech i v kódu. Sjednocuje jazyk člověk ↔ agent ↔ kód.</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="h"># Slovník pojmů</span>
+
+| Pojem | Definice |
+|---|---|
+| <span class="b">PUDO</span> | Pick-Up Drop-Off lokace. Dva typy: Box a VM. |
+| <span class="b">Box</span> | Samoobslužný terminál, 5 velikostí, skladovací doba 2 dny. |
+| <span class="b">VM</span> | Výdejní místo (obsluhované), 1 police, všechny velikosti, 7 dní. |
+| <span class="b">OOH</span> | Out-Of-Home doručení (mimo adresu příjemce). |
+| <span class="b">MDU</span> | Ignitix — zdroj dat o zásilkách (bulk i po jedné). |
+| <span class="b">event 1010</span> | Ranní HUB sken — trigger spuštění SmR. |
+| <span class="b">event 18</span> | Redirection na VM — SmR ho zapisuje při přesměrování. |</pre>
+    </div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">product/</span>ideas/<span class="accent">*.md</span></div>
+        <div class="purpose"><b>Explorace, ještě nezávazné.</b> Koncepty, které zvažujeme. Drží kontext „o čem se uvažuje", aniž by to bylo požadavkem. Když dozraje → povýší na requirement.</div>
+      </div>
+      <div class="ex-label">Příklad — ideas/budouci-rezervace.md</div>
+      <pre><span class="k">id:</span> SR-IDEA-004
+<span class="k">status:</span> <span class="hl">exploring</span>          <span class="c"># exploring → promoted → dropped</span>
+<span class="k">promoted_to:</span> null         <span class="c"># vyplní se ID requirementu, až dozraje</span>
+---
+<span class="h"># Budoucí rezervace (future reservation)</span>
+
+<span class="b">Souhrn:</span> Umožnit rezervaci PUDO pro doručení v budoucím dni, ne jen
+pro aktuální směnu.
+
+<span class="h">## Otevřené otázky</span>
+- Jak dlouho dopředu? (48h zmíněno v zadání u platné rezervace)
+- Co když kapacita do té doby zmizí? Garance vs. best-effort?
+- Dopad na event 18 — posílat hned, nebo až v den doručení?</pre>
+    </div>
+  </div>
+
+  <!-- WHAT -->
+  <div class="layer" style="--c:var(--what)">
+    <div class="lhead"><span class="badge">CO</span><h2>Požadavky</h2><span class="dir">context/requirements/</span></div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">requirements/</span>SR-REQ-001-kind-preference.md</div>
+        <div class="purpose"><b>Atomický kontrakt — 1 soubor = 1 požadavek.</b> Co přesně splnit + měřitelná akceptační kritéria. Kotví na zdroj (<code>source</code>), na kód (<code>implemented_in</code>), na rozhodnutí (<code>relates_to</code>). Toto je jednotka, na kterou ukazuje ADO ticket.</div>
+      </div>
+      <div class="ex-label">Příklad — kompletní</div>
+      <pre><span class="k">id:</span> SR-REQ-001
+<span class="k">title:</span> Kind preference při přesměrování (box vs. pickup)
+<span class="k">status:</span> approved        <span class="c"># draft → approved → implemented → verified</span>
+<span class="k">source:</span> <span class="hl">"business-zadani-v1.1 §2.5; business-spec.md §5.1"</span>
+<span class="k">depends_on:</span> []
+<span class="k">relates_to:</span> [ADR-006]
+<span class="k">implemented_in:</span> <span class="hl">[core/redirection/partner-order.ts]</span>
+<span class="k">acceptance_criteria:</span>
+  <span class="k">- id:</span> AC-1
+    <span class="k">given:</span> "zásilka, jejíž originál je Box"
+    <span class="k">when:</span>  "se hledá cíl přesměrování"
+    <span class="k">then:</span>  "primárně se zkouší Boxy; Pickup jen jako fallback"
+  <span class="k">- id:</span> AC-2
+    <span class="k">given:</span> "zásilka, jejíž originál je Pickup (VM)"
+    <span class="k">when:</span>  "se hledá cíl přesměrování"
+    <span class="k">then:</span>  "cílem smí být POUZE Pickup; Box je zakázán"
+  <span class="k">- id:</span> AC-3
+    <span class="k">given:</span> "více povolených cílů"
+    <span class="k">when:</span>  "se řadí pořadí"
+    <span class="k">then:</span>  "řadí se dle ceny vzestupně; při shodě Box před Pickup"
+<span class="k">ado:</span> [AB#29270]         <span class="c"># backfill — stav žije v ADO, ne tady</span>
+---
+<span class="b">Souhrn:</span> Box zásilka jde primárně mezi boxy (fallback na pickup),
+pickup zásilka jen mezi pickupy. Uvnitř se řadí dle ceny.
+
+<span class="h">## Detail pro agenta</span>
+Implementace rozděluje partnery na `PARTNER_ORDER_BOX` a `PARTNER_ORDER_PICKUP`.
+Pravidlo kind preference je tvrdé omezení — pickup→box NIKDY (ani fallback).
+Řazení dle ceny ASC viz tabulka cen v architecture/domain-model.md.</pre>
+    </div>
+    <div class="note">Pojmenování souboru: <code>&lt;ID&gt;-&lt;kebab-title&gt;.md</code>. ID je stabilní i když se title změní.</div>
+  </div>
+
+  <!-- HOW -->
+  <div class="layer" style="--c:var(--how)">
+    <div class="lhead"><span class="badge">JAK</span><h2>Architektura</h2><span class="dir">context/architecture/</span></div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">architecture/</span>overview.md</div>
+        <div class="purpose"><b>Big picture.</b> Co je služba za komponentu, její hranice, hlavní toky, sousedé. Agent díky tomu negeneruje návrh naslepo.</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="h"># Architektura — přehled</span>
+
+<span class="b">Souhrn:</span> Samostatná mikroslužba (Smart Redirection API). Vstup čte z NATS
+(event 1010) a z MDU/Grid; výstupem je rezervace přes MID a zápis eventu 18.
+
+<span class="h">## Komponenty a role</span>
+- <span class="b">SmR API</span> — jádro rozhodovací logiky; rozpoznává kamenné VM vs. locker.
+- <span class="b">MDU (Ignitix)</span> — zdroj dat o zásilkách (bulk / po jedné).
+- <span class="b">NATS</span> — event bus; SmR čte 1010, zapisuje 18 / 750 / 751.
+- <span class="b">MID</span> — vytváří rezervaci u partnera, vrací response.
+- <span class="b">DPD Network Partners API</span> — kontrola kapacity kamenného VM.
+
+<span class="h">## Fallback</span>
+Při výpadku NATS se služba chová jako doteď (žádné přesměrování). → ADR-011</pre>
+    </div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">architecture/</span>domain-model.md</div>
+        <div class="purpose"><b>Entity, stavy, invarianty.</b> Doménový model, který musí kód i requirementy ctít. Stavové přechody, business pravidla, klíčové konstanty.</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="h"># Doménový model</span>
+
+<span class="h">## Stavy zásilky</span>
+`pending → reserved → delivered`  (úspěch)
+`pending → failed`                (neumístěna)
+
+<span class="h">## Invarianty</span>
+- Velikost zásilky se NIKDY nepřepisuje (downgrade na M byl bug → ADR-003).
+- XL kapacitu mají jen DPD Box a AlzaBox → ADR-002.
+
+<span class="h">## Klíčové konstanty</span>
+| Param | Hodnota | Význam |
+|---|---|---|
+| RAD1 | 350 m | preferovaný okruh hledání |
+| RAD2 | 550 m | fallback okruh |
+| STOP_COST | 30 Kč | náklad na zastávku kurýra |</pre>
+    </div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">architecture/</span>data-model.md</div>
+        <div class="purpose"><b>Datové schéma.</b> Tabulky, klíčové sloupce, vztahy. Agent ví, kam se data ukládají a co kde hledat při verifikaci.</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="h"># Datový model</span>
+
+<span class="h">## smart_redirection.reservation</span>
+| Sloupec | Typ | Pozn. |
+|---|---|---|
+| pudoId | string | cílové PUDO |
+| parcel_number | string | identifikace zásilky |
+| status | enum | stav rezervace |
+| <span class="b">redirectedToPudoId</span> | string\|null | kam přesměrováno (klíč pro test) |
+| oversized | bool | nadrozměr |
+
+<span class="h">## smart_redirection.pickup_point_proximity</span>
+pudoId, neighboringPudoId, walking_duration, proximity_calculated_for
+<span class="c"># pozor: known issue — walking distance mismatch u edge cases (ADR-014)</span></pre>
+    </div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">architecture/</span>integrations.md</div>
+        <div class="purpose"><b>Kontrakty s okolím.</b> Eventy a API, které služba čte/píše — formát, směr, kdy. Nejdůležitější soubor pro integrační práci agenta.</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="h"># Integrační kontrakty</span>
+
+<span class="h">## NATS eventy</span>
+| Event | Směr | Kdy |
+|---|---|---|
+| 1010 | <span class="g">IN</span>  | ranní HUB sken → trigger SmR |
+| 18   | <span class="b">OUT</span> | redirection na VM (info pro DPD systémy) |
+| 750  | <span class="b">OUT</span> | SmR proběhl úspěšně |
+| 751  | <span class="b">OUT</span> | SmR nenašel vhodné PUDO |
+
+<span class="h">## MID — vytvoření rezervace</span>
+`POST /v1/reservations`  body: { parcel_number, pudoId }
+response: { reservationId, status }  → ukládá se do reservation tabulky.
+
+<span class="h">## Otevřená otázka</span>
+Co přesně poslat v payloadu eventu 18? → nedořešeno, viz ADR-011 (draft).</pre>
+    </div>
+  </div>
+
+  <!-- DECISIONS -->
+  <div class="layer" style="--c:var(--dec)">
+    <div class="lhead"><span class="badge">PROČ TAK</span><h2>Rozhodnutí (ADR)</h2><span class="dir">context/decisions/</span></div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">decisions/</span>ADR-002-xl-kapacity.md</div>
+        <div class="purpose"><b>Jedno rozhodnutí = jeden soubor.</b> Rozhodnutí, jeho důvod a důsledky. Maximum kontextu — brání agentovi vrátit dříve zamítnuté řešení. Přímý přenos z „Apendix A: Klíčová rozhodnutí".</div>
+      </div>
+      <div class="ex-label">Příklad — kompletní</div>
+      <pre><span class="k">id:</span> ADR-002
+<span class="k">title:</span> XL kapacita pouze AlzaBox + DPD Box
+<span class="k">date:</span> 2026-05-14
+<span class="k">status:</span> <span class="hl">accepted</span>      <span class="c"># proposed → accepted → superseded</span>
+<span class="k">relates_to:</span> [SR-REQ-003, SR-REQ-008]
+---
+<span class="h"># ADR-002: XL kapacita pouze AlzaBox + DPD Box</span>
+
+<span class="b">Rozhodnutí:</span> XL schránky existují pouze v sítích DPD Box a AlzaBox.
+Ostatní boxy (Z-BOX, GLS, One Box, OX Point) XL kapacitu nemají.
+
+<span class="b">Důvod:</span> Odpovídá reálnému stavu boxů v praxi.
+
+<span class="h">## Důsledky</span>
+- Generátor zásilek filtruje: XL cíl jen z lokací s XL kapacitou + všechny VM.
+- XL přesměrování má vlastní větev (Krok 0) mimo hlavní cyklus.
+- Brand bez XL kapacity NIKDY není cílem XL zásilky → fail-fast assertion.</pre>
+    </div>
+  </div>
+
+  <!-- WORK -->
+  <div class="layer" style="--c:var(--work)">
+    <div class="lhead"><span class="badge">PRÁCE</span><h2>Stories / tasky</h2><span class="dir">context/stories/</span></div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">stories/</span>SR-US-001.md</div>
+        <div class="purpose"><b>Jednotka práce = „ticket v GITu".</b> Mapuje na requirementy (<code>covers</code>), drží plný agent-facing detail. Z tohoto souboru se generuje ADO work item — do něj jde jen <b>souhrn + odkaz sem</b>.</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="k">id:</span> SR-US-001
+<span class="k">title:</span> Refaktor PARTNER_ORDER na box/pickup preferenci
+<span class="k">covers:</span> <span class="hl">[SR-REQ-001]</span>            <span class="c"># které requirementy plní</span>
+<span class="k">status:</span> in-progress         <span class="c"># zrcadlí stav v ADO (čte se odtud)</span>
+<span class="k">ado:</span> AB#29270              <span class="c"># vyplněno při generování work itemu</span>
+---
+<span class="b">Souhrn (jde do ADO):</span> Rozdělit PARTNER_ORDER na BOX a PICKUP a respektovat
+kind preferenci (Box→Box→Pickup, Pickup→jen Pickup).
+
+<span class="h">## Zadání pro agenta</span>
+1. V `core/redirection/partner-order.ts` rozděl seznam na dvě konstanty.
+2. Box zásilka: zkus BOX cyklus, pak PICKUP fallback. Pickup: jen PICKUP.
+3. Uvnitř každého seřaď dle ceny ASC (tabulka v domain-model.md).
+4. Splň acceptance_criteria AC-1..AC-3 ze SR-REQ-001.
+
+<span class="h">## Hotovo, když</span>
+viz conventions/definition-of-done.md + všechna AC navázaného requirementu projdou.</pre>
+    </div>
+  </div>
+
+  <!-- BUILD -->
+  <div class="layer" style="--c:var(--build)">
+    <div class="lhead"><span class="badge">STAVĚT</span><h2>Konvence a mantinely</h2><span class="dir">context/conventions/</span></div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">conventions/</span>coding-standards.md</div>
+        <div class="purpose"><b>Jak psát kód.</b> Styl, patterny, architektonická pravidla. Může odkazovat na existující AGENTS.md (hexagonální arch., use-case pattern).</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="h"># Coding standards</span>
+
+- Hexagonální architektura: `core/` (doména) · `infrastructure/` · `interface/`.
+- Use-case pattern — use-case NESMÍ volat jiný use-case; sdílené → Services.
+- Doménová logika v entitách, ne v service/repository. Zákaz „utils" modulů.
+- Style: 4 mezery, single quotes, bez středníků, žádné implicitní `any`.</pre>
+    </div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">conventions/</span>definition-of-done.md</div>
+        <div class="purpose"><b>Kdy je práce hotová.</b> Checklist, který musí agent i reviewer projít před uzavřením story.</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="h"># Definition of Done</span>
+
+- [ ] Všechna `acceptance_criteria` navázaného requirementu mají test a procházejí.
+- [ ] `status:` requirementu posunut na `implemented`, `implemented_in:` vyplněn.
+- [ ] Žádná změna chování bez navázaného requirementu nebo ADR.
+- [ ] Lint + typecheck čisté; PR má odkaz na story i requirement.</pre>
+    </div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">conventions/</span>agent-guardrails.md</div>
+        <div class="purpose"><b>Mantinely pro agenta.</b> Co smí měnit sám, co ne, a kdy se MÁ zeptat místo improvizace. Klíčové pro to, aby agent neudělal škodu mimo scope.</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="h"># Agent guardrails</span>
+
+<span class="h">## Smíš sám</span>
+- Implementovat kód dle requirementu a jeho acceptance_criteria.
+- Přidat/upravit testy. Aktualizovat `status:` a `implemented_in:`.
+
+<span class="h">## Nesmíš bez schválení</span>
+- Měnit `acceptance_criteria` nebo znění requirementu.
+- Měnit integrační kontrakty (eventy, API) — to je ADR + souhlas.
+- Mazat nebo přepisovat ADR.
+
+<span class="h">## Zeptej se, když</span>
+- Zadání je nejednoznačné nebo si protiřečí s ADR → STOP, zeptej se.
+- Requirement nemá acceptance_criteria → nedá se ověřit hotovo, vyžádej je.</pre>
+    </div>
+  </div>
+
+  <!-- EXTERNAL -->
+  <div class="layer" style="--c:var(--ext)">
+    <div class="lhead"><span class="badge">SVĚT</span><h2>Okolní služby</h2><span class="dir">context/external/</span></div>
+
+    <div class="file">
+      <div class="head">
+        <div class="path"><span class="accent">external/</span>universe.md</div>
+        <div class="purpose"><b>Výtah o sousední službě.</b> Co dělá, co z ní SmR potřebuje, kontaktní bod. Jen tolik, kolik agent potřebuje pro integraci — plný popis žije v centrálním <code>dpd-context</code> repu (odkaz).</div>
+      </div>
+      <div class="ex-label">Příklad</div>
+      <pre><span class="k">canonical:</span> <span class="hl">dpd-context/products/universe.md</span>   <span class="c"># zdroj pravdy</span>
+---
+<span class="h"># Universe (výtah)</span>
+
+<span class="b">Souhrn:</span> Hlavní portál DPD. SmR do něj zobrazuje přesměrování v modulu
+„Výdejní místa a boxy" a novou záložku „Pravidla přesměrování".
+
+<span class="h">## Co z toho SmR potřebuje</span>
+- Zobrazení stavu přesměrované zásilky (čte přes GraphQL federaci).
+- Žádná zpětná závislost — Universe SmR jen čte, nevolá.</pre>
+    </div>
+  </div>
+
+  <div class="foot">QEST PMO · katalog obsahu context/ · v0.1 · příklady na datech Smart Redirection</div>
+</div>
