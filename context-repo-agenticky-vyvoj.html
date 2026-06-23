@@ -1,3 +1,4 @@
+<meta charset="UTF-8">
 <title>Context repo pro agentický vývoj</title>
 <style>
   :root{
@@ -62,6 +63,27 @@
   .divider{margin-top:58px;border-top:2px solid var(--ink);padding-top:10px}
   .divider .sk{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--t3);margin:0}
   .divider h2{font-family:var(--head);font-weight:800;font-size:26px;margin:4px 0 0;letter-spacing:-.01em}
+  table.t{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border:1px solid var(--border);margin-top:14px}
+  table.t th{font-family:var(--mono);font-weight:400;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);text-align:left;padding:10px 12px;border-bottom:1px solid var(--bstrong);background:var(--surface2);vertical-align:top}
+  table.t td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--t2);vertical-align:top}
+  table.t tr:last-child td{border-bottom:0}
+  table.t td b{color:var(--text)}
+  table.t td code{font-size:.9em}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  .box{background:var(--surface);border:1px solid var(--border);padding:18px}
+  .box.repo{border-top:3px solid var(--cyan)} .box.notion{border-top:3px solid var(--dec)}
+  .box h4{font-family:var(--head);font-weight:800;font-size:15px;margin:0 0 4px}
+  .box .tagm{font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em}
+  .heur{border-left:3px solid var(--cyan);background:var(--cyan50);padding:14px 18px;margin-top:10px;font-size:14px;color:var(--cyanink)}
+  .note2{background:var(--surface2);border:1px solid var(--border);padding:13px 16px;margin-top:14px;font-size:13px;color:var(--t2)}
+  .note2 b{color:var(--text)}
+  ul.flat{list-style:none;padding:0;margin:10px 0 0}
+  ul.flat li{position:relative;padding-left:18px;margin-bottom:7px;font-size:13.5px;color:var(--t2)}
+  ul.flat li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;background:var(--cyan)}
+  ul.flat li b{color:var(--text)}
+  .flowline{font-family:var(--mono);font-size:12px;color:var(--t2);background:var(--ink);color:#E4E4E7;padding:14px 16px;margin-top:14px;overflow-x:auto;white-space:pre-wrap;line-height:1.7}
+  .flowline b{color:var(--cyan)}
+  .warn{color:var(--dec);font-weight:600}
 </style>
 
 <div class="wrap">
@@ -568,5 +590,210 @@ viz conventions/definition-of-done.md + všechna AC navázaného requirementu pr
     </div>
   </div>
 
-  <div class="foot">QEST PMO · katalog obsahu context/ · v0.1 · příklady na datech Smart Redirection</div>
+  <!-- ===================== PROVOZNÍ MODEL ===================== -->
+  <div class="divider">
+    <p class="sk">Provozní model</p>
+    <h2>Procesy, role, testing a governance</h2>
+  </div>
+
+  <!-- 4 · CHALLENGE -->
+  <div class="sec">
+    <p class="sk">4 — Challenge</p>
+    <h2>Kde to naráží na dnešní standardní proces</h2>
+    <p>Dnešní proces je sekvenční (BA → Architekt → PM → Dev → Tester), dokumenty jsou próza, ADO je centrum a odhady stojí na člověkohodinách. Agent-first model to na několika místech láme — pojmenovat to teď, ne až v pilotu.</p>
+    <table class="t">
+      <tr><th>Námitka ze současného procesu</th><th>Riziko</th><th>Jak řešit</th></tr>
+      <tr><td><b>Próza → strukturované AC s ID.</b> BA musí psát atomicky a testovatelně.</td><td>Nová disciplína, počáteční zpomalení, nekonzistence mezi BA.</td><td>Šablony + validační gate + příklady; revize AC Testerem na testovatelnost.</td></tr>
+      <tr><td><b>Bottleneck se přesouvá z kódování na review.</b></td><td>Throughput limituje kapacita revize — plánování v MD už neplatí.</td><td>Plánovat kapacitu review; senior Dev = reviewer, ne autor.</td></tr>
+      <tr><td><b>Odhady a velocity</b> stojí na člověkohodinách.</td><td>Story pointy / MD ztrácejí smysl; rozpadne se forecast i billing.</td><td>Odhad v počtu stories; nový model nacenění (sekce 10).</td></tr>
+      <tr><td><b>Kdo ručí za vadu od agenta?</b></td><td>Mezera v odpovědnosti.</td><td>Odpovídá <b>člověk, který PR schválil</b>; AC je kontrakt BA.</td></tr>
+      <tr><td><b>Architekt jako gate</b> mizí, architektura je v souborech.</td><td>Agent dělá implicitní architektonická rozhodnutí.</td><td>Tvrdé guardrails + ADR povinné u změny kontraktů.</td></tr>
+      <tr><td><b>Formální akceptace pro klienta (DPD).</b></td><td>Git historie nemusí stačit jako podpisový artefakt.</td><td>Generovat akceptační výstup z <code>requirements/</code>; sign-off mimo git.</td></tr>
+      <tr><td><b>Testing na konci</b> vs. AC up-front.</td><td>Agent „si známkuje vlastní úkol".</td><td>Nezávislé psaní acceptance testů (sekce 7).</td></tr>
+    </table>
+    <div class="note2"><b>Závěr:</b> technicky proveditelné, hodnota reálná — ale <b>kritická jsou ne-technická rizika</b>: model odpovědnosti, odhady/billing a nezávislost testů. Pilot musí cílit přesně na ně.</div>
+  </div>
+
+  <!-- 5 · GIT vs NOTION -->
+  <div class="sec">
+    <p class="sk">5 — Kde je čára</p>
+    <h2>GIT vs Notion — co kam patří</h2>
+    <p>Cílem <b>není</b> „veškeré produktové dokumenty v repu". Hodnota je koncentrovaná do <b>kontraktní vrstvy</b>; u živé vrstvy klesá do záporu. Rámec: <b>rozdělujeme dokumentaci na kontraktní (repo) a živou (Notion)</b>.</p>
+    <div class="heur"><b>Heuristika:</b> Do repa patří dokument tehdy, když správnost agenta závisí na tom, že je verzovaný atomicky s&nbsp;kódem. V Notionu zůstává, když je primární use-case lidská kolaborace nad rychle se měnícím obsahem.</div>
+    <div class="two">
+      <div class="box repo">
+        <span class="tagm">do repa — kontraktní vrstva</span>
+        <h4>GIT</h4>
+        <ul class="flat">
+          <li>requirements + akceptační kritéria</li>
+          <li>ADR (rozhodnutí), domain model</li>
+          <li>glossary, integrační kontrakty (eventy, API)</li>
+          <li>conventions, agent-guardrails, architektura</li>
+        </ul>
+      </div>
+      <div class="box notion">
+        <span class="tagm">do notionu — živá vrstva</span>
+        <h4>Notion</h4>
+        <ul class="flat">
+          <li>budget, RAID / rizika, roadmapa</li>
+          <li>stakeholder mapa, status reporty</li>
+          <li>meeting zápisy</li>
+          <li>klientské materiály</li>
+        </ul>
+      </div>
+    </div>
+    <table class="t">
+      <tr><th>Co repo-vrstva koupí (o agentovi, ne teorie)</th><th>Co by se ztratilo nacpáním živé vrstvy do gitu</th></tr>
+      <tr><td>Stejný kontext v&nbsp;jednom diffu — bez MCP round-tripů, levné na tokeny.</td><td>Real-time kolaborace a přístup ne-vývojářů.</td></tr>
+      <tr><td>Atomicita spec↔kód — spec nemůže tiše driftovat.</td><td>Bohaté views / databáze / rollupy.</td></tr>
+      <tr><td>Review ve stejné bráně (PR + CODEOWNERS).</td><td>Nízká friction častých úprav.</td></tr>
+      <tr><td>Pravidla jako gate (schema, „merge neprojde bez testu").</td><td>Žádný šum z volatility v&nbsp;commit historii.</td></tr>
+      <tr><td>Audit „proč" (ADR + <code>git blame</code>); větvení specu vedle kódu.</td><td>Granularita přístupu; stale dokument v&nbsp;repu je nebezpečnější (agent mu věří).</td></tr>
+    </table>
+    <div class="note2"><b>Pro meeting:</b> neprezentovat jako „migrujeme docs do repa", ale jako <b>„rozdělujeme dokumentaci na kontraktní a živou"</b> — obhajitelné a nezabíjí to, co na Notionu funguje.</div>
+  </div>
+
+  <!-- 6 · STAV A BOARD -->
+  <div class="sec">
+    <p class="sk">6 — Stav</p>
+    <h2>Vizualizace stavu zůstává na boardu</h2>
+    <p>PM/BA chtějí vidět, <b>v jakém stavu co je</b>. To git neřeší a řešit nemá — je to rychlá, volatilní vrstva.</p>
+    <ul class="flat">
+      <li><b>Git = kontrakt</b> (co a proč stavíme). <b>Board = stav a tok</b> (kde to je).</li>
+      <li>Story v gitu nese odkaz <code>ado:</code> → <b>board v Azure DevOps</b> ukazuje stav, sprint, flow, burndown.</li>
+      <li><b>Notion</b> drží filtrované views nad živou vrstvou (budget, RAID, roadmapa) — co board v ADO neumí.</li>
+      <li>Pravidlo: <b>stav teče z boardu, kontrakt z gitu</b>; nic stavového se do gitu nezrcadlí.</li>
+    </ul>
+  </div>
+
+  <!-- 7 · TESTING -->
+  <div class="sec">
+    <p class="sk">7 — Testing</p>
+    <h2>Testing a kontrola kvality</h2>
+    <p>Akceptační kritéria v <code>requirements/</code> jsou kontrakt → z nich vznikají testy. <b>Role Testera nemizí — stává se vlastníkem kvality.</b></p>
+    <table class="t">
+      <tr><th>Brána</th><th>Co kontroluje</th><th>Kdo</th></tr>
+      <tr><td>Validační gate</td><td>strukturu specu (schema, ref. integrita)</td><td>CI / automat</td></tr>
+      <tr><td>Test-gate</td><td>pokrytí AC automatickými testy</td><td>CI / automat</td></tr>
+      <tr><td>Review</td><td>správnost kódu vs. requirement</td><td>Developer</td></tr>
+      <tr><td>Sign-off</td><td>nezávislé ověření + exploratory</td><td>Tester</td></tr>
+    </table>
+    <ul class="flat">
+      <li><b>Testy z AC, nezávisle:</b> acceptance testy píše <b>jiná entita než implementační agent</b> (Tester nebo oddělený „QA agent" kurátorovaný Testerem) — jinak agent „známkuje vlastní úkol".</li>
+      <li><b>Role Testera:</b> hlídá testovatelnost AC, vlastní acceptance suite, dělá exploratory na to, co AC nepokryla, drží test-gate a finální sign-off.</li>
+      <li><b>Definition of Done</b> váže merge na pokrytí AC; automatický suite je bezpečnostní síť rychlé agentí iterace.</li>
+    </ul>
+  </div>
+
+  <!-- 8 · ROLE × PROCES -->
+  <div class="sec">
+    <p class="sk">8 — Role</p>
+    <h2>Pět rolí a jak se mění</h2>
+    <table class="t">
+      <tr><th>Role</th><th>Vlastní v context/</th><th>Hlavní posun</th></tr>
+      <tr><td><b>Business analytik</b></td><td><code>product/</code>, <code>requirements/</code></td><td>Nejvíc změněná role — z prózy na atomické, testovatelné AC s ID.</td></tr>
+      <tr><td><b>Architekt</b></td><td><code>architecture/</code>, <code>decisions/</code></td><td>Z gatekeepera → autor mantinelů (ADR) a strážce hranic.</td></tr>
+      <tr><td><b>Developer</b></td><td><code>src/</code>, <code>conventions/</code></td><td>Z autora → reviewer PR + senior na těžkých 20&nbsp;%.</td></tr>
+      <tr><td><b>Projekťák (PM)</b></td><td><code>stories/</code> ↔ ADO</td><td>Z trackingu ticketů → řízení toku, kapacity review a scope (git-diff).</td></tr>
+      <tr><td><b>Tester</b></td><td><code>tests/</code>, kvalita AC</td><td>QA „shift-left" — z pozdní exekuce na up-front testy a sign-off.</td></tr>
+    </table>
+    <div class="flowline"><b>Tok s předávkami:</b>  BA (requirement+AC) → Architekt (architecture/ADR) → PM (story + ADO ticket) → Tester (acceptance testy z AC) → agent (implementace) → Dev (review PR) → test-gate → merge → stav do reportů
+<b>Lidské rozhodovací body:</b>  AC (BA) · architektura (Architekt) · PR review (Dev) · test-gate (Tester)</div>
+  </div>
+
+  <!-- 9 · MIGRACE -->
+  <div class="sec">
+    <p class="sk">9 — Migrace</p>
+    <h2>Jak začít — fázovaně, ne big-bang</h2>
+    <ol class="steps">
+      <li><b>Fáze 0 — základ.</b><div class="d">Vybrat 1 službu + 1 squad (pilot: Smart Redirection, kde už je AGENTS.md). Postavit šablony, schéma, validační gate.</div></li>
+      <li><b>Fáze 1 — shadow run.</b><div class="d">BA atomizuje jeden epic do requirements+AC, Architekt doplní architecture + ADR. Běží <b>paralelně</b> se současným procesem → nízké riziko, srovnání.</div></li>
+      <li><b>Fáze 2 — první stories agentem.</b><div class="d">Tester připraví acceptance testy, agent implementuje, Dev reviduje. Měřit metriky.</div></li>
+      <li><b>Fáze 3 — retro &amp; go/no-go.</b><div class="d">Doladit šablony, guardrails, model testů; rozhodnout pokračování.</div></li>
+      <li><b>Fáze 4 — rozšíření.</b><div class="d">Na celou službu, pak další squad. Legacy kontext doplňovat <b>oportunisticky</b> (jen při doteku), ne najednou. ADO zůstává — žádný hard cut-over.</div></li>
+    </ol>
+  </div>
+
+  <!-- 10 · FAKTURACE -->
+  <div class="sec">
+    <p class="sk">10 — Nacenění</p>
+    <h2>Jak fakturovat a naceňovat</h2>
+    <p>Účtovat „kódovací MD" se rozpadá — když agent hodiny zkrátí, propadne revenue při stejné hodnotě. Rozdělit cenu na tři složky:</p>
+    <table class="t">
+      <tr><th>Složka</th><th>Co to je</th><th>Jak účtovat</th></tr>
+      <tr><td><b>Lidská expertíza</b></td><td>BA, Architekt, Dev-reviewer, Tester, PM — tady reálná práce zůstává</td><td>kapacita / MD (klasicky)</td></tr>
+      <tr><td><b>Delivery jednotka</b></td><td>dodaný requirement / story</td><td><b>fixní cena za story dle složitosti (S/M/L)</b>, kalibrovaná z pilotu — nahrazuje „kódovací MD"</td></tr>
+      <tr><td><b>Platforma / agent</b></td><td>náklad na agenta (compute)</td><td>pass-through nebo paušál, jako samostatná položka</td></tr>
+    </table>
+    <ul class="flat">
+      <li><b>Pro klienta:</b> platí za výsledky + expertízu + platformu, ne za hodiny ťukání.</li>
+      <li><b>Odhady</b> v počtu stories, ne v MD. Pilot změří throughput a cenu agenta na story → z toho ceník složitostních tříd.</li>
+      <li><b class="warn">Otevřené:</b> marže na platformě vs. pass-through; jak ošetřit rework ve fixní ceně za story.</li>
+    </ul>
+  </div>
+
+  <!-- 11 · METRIKY -->
+  <div class="sec">
+    <p class="sk">11 — Metriky</p>
+    <h2>Metriky úspěšnosti</h2>
+    <table class="t">
+      <tr><th>Skupina</th><th>Metriky</th></tr>
+      <tr><td><b>Rychlost</b></td><td>lead time zadání → merge · throughput (stories/sprint) · review ratio (% času Dev v revizi)</td></tr>
+      <tr><td><b>Kvalita</b></td><td>rework rate · defect escape rate vs. baseline · % PR mergnutých jen s revizí (autonomie agenta)</td></tr>
+      <tr><td><b>Kontext</b></td><td>% requirementů s testovatelným AC · % AC s automatickým testem · % stories ↔ requirement ↔ kód · first-time-right pass rate</td></tr>
+      <tr><td><b>Adopce</b></td><td>% nové práce v context-repo toku · onboarding time nového Dev (proxy retence znalostí)</td></tr>
+    </table>
+    <div class="note2"><b class="warn">Anti-gaming:</b> rychlost vždy párovat s kvalitou (defect escape + rework) — jinak se optimalizuje chrlení.</div>
+  </div>
+
+  <!-- 12 · RIZIKA / ZÁPISY -->
+  <div class="sec">
+    <p class="sk">12 — Most</p>
+    <h2>Kde se řeší rizika, meetingy a otázky</h2>
+    <ul class="flat">
+      <li><b>Rizika (RAID), meeting zápisy, otevřené otázky, status → Notion</b> (živá vrstva, board views).</li>
+      <li><b>Git dostává jen destilát:</b> když diskuse vyprodukuje rozhodnutí ovlivňující chování → vznikne <b>ADR</b> nebo úprava requirementu v gitu; zápis zůstává v Notionu.</li>
+      <li><b>Governance:</b> risk review a steering běží nad Notionem; architektonická a kontraktní rozhodnutí povinně končí jako ADR/requirement v gitu.</li>
+    </ul>
+    <div class="heur"><b>Pravidlo mostu:</b> Notion je místo diskuse a živého stavu; git je místo destilovaného kontraktu. Diskuse v&nbsp;Notionu → rozhodnutí v&nbsp;gitu (ADR/requirement) → odkaz zpět.</div>
+  </div>
+
+  <!-- 13 · GOVERNANCE -->
+  <div class="sec">
+    <p class="sk">13 — Governance</p>
+    <h2>Řízení a brány kvality</h2>
+    <table class="t">
+      <tr><th>Oblast</th><th>Vlastník / schvaluje</th></tr>
+      <tr><td>requirements + AC</td><td>BA (+ stakeholder approve)</td></tr>
+      <tr><td>ADR / architektura</td><td>Architekt</td></tr>
+      <tr><td>conventions</td><td>Lead Developer</td></tr>
+      <tr><td>merge PR</td><td>Dev reviewer</td></tr>
+      <tr><td>acceptance testy / sign-off</td><td>Tester</td></tr>
+      <tr><td>tok &amp; scope</td><td>PM</td></tr>
+    </table>
+    <ul class="flat">
+      <li><b>Change control:</b> změna requirementu = PR + schválení; architektonická změna = povinné ADR; scope change je vidět jako <code>git diff</code>.</li>
+      <li><b>3 quality gates:</b> validační (struktura) → review (člověk) → test-gate (pokrytí AC). Definition of Done je váže.</li>
+      <li><b>Rozhodnutí:</b> nic architektonického bez ADR; ADR se nemažou, jen <code>superseded</code>.</li>
+      <li><b>Kadence:</b> spec grooming (BA+Architekt), SLA na review, <b>retro na samotný proces</b>, přehled metrik + steering pilotu.</li>
+    </ul>
+  </div>
+
+  <!-- 14 · OTEVŘENÉ OTÁZKY -->
+  <div class="sec">
+    <p class="sk">14 — K vyřešení</p>
+    <h2>Otevřené otázky (dle priority)</h2>
+    <ul class="flat">
+      <li><b>Kdo píše acceptance testy</b> a jak zajistit nezávislost na implementačním agentovi.</li>
+      <li><b>Model odpovědnosti</b> za vadu od agenta (schvalovatel PR).</li>
+      <li><b>Odhady, velocity a billing</b> — nový základ místo MD; dohoda s klientem.</li>
+      <li><b>Formální akceptace / sign-off</b> pro klienta (DPD) nad git-spec.</li>
+      <li><b>Granularita requirementů</b> a konzistence napříč BA.</li>
+      <li><b>GitLab (DPD) vs. ADO</b> — přesný mechanismus a vlastnictví sync.</li>
+      <li><b>Bezpečnost / IP</b> — co agent čte, jak se řeší tajemství, co smí pushovat; náklady a limity modelu.</li>
+      <li><b>Kolik legacy kontextu</b> doplnit vs. jen při doteku.</li>
+    </ul>
+  </div>
+
+  <div class="foot">QEST PMO · context engineering pro AI-first vývoj · v0.3 · struktura · proces · provozní model · ilustrace: Smart Redirection</div>
 </div>
