@@ -215,5 +215,82 @@
     <div class="note2"><b>Pořadí předávek:</b> BA (co a proč) → PM (plán a stav) + Tech Lead (jak) → agent (implementace) → Dev (review) → QA (kvalita a sign-off). Lidské rozhodovací body: AC, architektura, PR review, test-gate.</div>
   </div>
 
-  <div class="foot">QEST PMO · datový model · topologie · toolchain · v0.1 · zakotveno v reálných Notion DB (Products / Service Catalog / Projects)</div>
+  <!-- 6 · HUB ↔ SERVICE REPO -->
+  <div class="sec">
+    <p class="sk">6 — Vztah</p>
+    <h2>Hub ↔ Service repo ↔ Board — kdo co edituje</h2>
+    <p>Hub je <b>per-projekt</b> (dočasný, cross-repo), service repo je <b>per-služba</b> (trvalý, sdílený mnoha projekty). Spojují se přes <b>ID</b>, obsah se nekopíruje. „1 projekt → N služeb" a&nbsp;zároveň „1 služba ← N projektů".</p>
+    <div style="background:var(--surface);border:1px solid var(--border);padding:20px;margin-top:14px;overflow-x:auto">
+      <svg viewBox="0 0 880 470" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif" style="display:block;max-width:100%;height:auto;margin:0 auto" role="img" aria-label="Vztah hub, service repo a board">
+        <defs>
+          <marker id="ac" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0C87B8"/></marker>
+          <marker id="ag" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#A1A1AA"/></marker>
+          <marker id="ap" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#7C3AED"/></marker>
+        </defs>
+
+        <!-- HUB box -->
+        <rect x="30" y="100" width="300" height="310" fill="#FFFFFF" stroke="#D4D4D8"/>
+        <rect x="30" y="100" width="300" height="4" fill="#83E1FF"/>
+        <text x="46" y="130" font-size="14" font-weight="700" fill="#0A0A0B">HUB — project-hub</text>
+        <text x="46" y="147" font-size="10" font-family="monospace" fill="#71717A">per-projekt · dočasný</text>
+        <text x="314" y="130" text-anchor="end" font-size="11" font-family="monospace" fill="#0C87B8">BA + PM</text>
+        <line x1="46" y1="160" x2="314" y2="160" stroke="#EBEBEF"/>
+        <text x="46" y="186" font-size="11.5" font-family="monospace" fill="#0A0A0B">vision.md</text>
+        <text x="46" y="214" font-size="11.5" font-family="monospace" fill="#0A0A0B">requirements/ + AC</text><text x="314" y="214" text-anchor="end" font-size="9" font-family="monospace" fill="#71717A">BA</text>
+        <text x="46" y="242" font-size="11.5" font-family="monospace" fill="#0A0A0B">decisions/ (cross-svc ADR)</text><text x="314" y="242" text-anchor="end" font-size="9" font-family="monospace" fill="#71717A">Architekt</text>
+        <text x="46" y="270" font-size="11.5" font-family="monospace" fill="#0A0A0B">affects.yaml</text><text x="314" y="270" text-anchor="end" font-size="9" font-family="monospace" fill="#71717A">PM</text>
+        <text x="46" y="298" font-size="11.5" font-family="monospace" fill="#0A0A0B">stories.md (index)</text><text x="314" y="298" text-anchor="end" font-size="9" font-family="monospace" fill="#71717A">PM</text>
+        <text x="46" y="384" font-size="10.5" fill="#71717A">projekt skončí → složka se zavře</text>
+        <text x="46" y="404" font-size="11" font-weight="600" fill="#0C87B8">1 projekt → N služeb</text>
+
+        <!-- SERVICE box -->
+        <rect x="540" y="78" width="310" height="244" fill="#FFFFFF" stroke="#D4D4D8"/>
+        <rect x="540" y="78" width="310" height="4" fill="#83E1FF"/>
+        <text x="556" y="62" font-size="11" font-weight="600" fill="#0C87B8">1 služba ← N projektů  (sdílená)</text>
+        <text x="556" y="106" font-size="14" font-weight="700" fill="#0A0A0B">SERVICE REPO</text>
+        <text x="556" y="123" font-size="10" font-family="monospace" fill="#71717A">lockers-node/context/ · trvalý</text>
+        <text x="834" y="106" text-anchor="end" font-size="11" font-family="monospace" fill="#0C87B8">Tech Lead + Dev</text>
+        <line x1="556" y1="136" x2="834" y2="136" stroke="#EBEBEF"/>
+        <text x="556" y="162" font-size="11.5" font-family="monospace" fill="#0A0A0B">architecture / integrations.md</text><text x="834" y="162" text-anchor="end" font-size="9" font-family="monospace" fill="#71717A">Tech Lead</text>
+        <text x="556" y="190" font-size="11.5" font-family="monospace" fill="#0A0A0B">decisions/ (service ADR)</text><text x="834" y="190" text-anchor="end" font-size="9" font-family="monospace" fill="#71717A">Tech Lead</text>
+        <text x="556" y="218" font-size="11.5" font-family="monospace" fill="#0A0A0B">stories/ (covers REQ)</text><text x="834" y="218" text-anchor="end" font-size="9" font-family="monospace" fill="#71717A">agent → Dev</text>
+        <text x="556" y="246" font-size="11.5" font-family="monospace" fill="#0A0A0B">conventions / guardrails</text><text x="834" y="246" text-anchor="end" font-size="9" font-family="monospace" fill="#71717A">Lead Dev</text>
+        <text x="556" y="274" font-size="11.5" font-family="monospace" fill="#0A0A0B">core/ … (kód)</text><text x="834" y="274" text-anchor="end" font-size="9" font-family="monospace" fill="#71717A">Dev</text>
+        <text x="556" y="302" font-size="11.5" font-family="monospace" fill="#0A0A0B">tests/ (AC → testy)</text><text x="834" y="302" text-anchor="end" font-size="9" font-family="monospace" fill="#71717A">QA</text>
+
+        <!-- BOARD box -->
+        <rect x="540" y="358" width="310" height="96" fill="#FFFFFF" stroke="#D4D4D8"/>
+        <rect x="540" y="358" width="310" height="4" fill="#7C3AED"/>
+        <text x="556" y="386" font-size="14" font-weight="700" fill="#0A0A0B">BOARD (ADO / JIRA)</text>
+        <text x="834" y="386" text-anchor="end" font-size="11" font-family="monospace" fill="#7C3AED">PM</text>
+        <text x="556" y="412" font-size="11.5" font-family="monospace" fill="#0A0A0B">Ticket: stav · assignee · sprint</text>
+        <text x="556" y="434" font-size="11" font-family="monospace" fill="#71717A">odkaz → REQ v hubu</text>
+
+        <!-- registry pill -->
+        <rect x="372" y="150" width="166" height="26" fill="#0A0A0B"/>
+        <text x="455" y="167" text-anchor="middle" font-size="9.5" font-family="monospace" fill="#83E1FF">registry: SVC-ID → repo</text>
+        <line x1="455" y1="176" x2="455" y2="206" stroke="#A1A1AA" stroke-width="1.2" stroke-dasharray="3 3"/>
+
+        <!-- targets arrow hub -> service -->
+        <line x1="330" y1="208" x2="538" y2="208" stroke="#0C87B8" stroke-width="2" marker-end="url(#ac)"/>
+        <text x="434" y="200" text-anchor="middle" font-size="10" font-family="monospace" fill="#0C87B8">targets: [SVC-ID]</text>
+
+        <!-- covers arrow service -> hub -->
+        <line x1="538" y1="250" x2="332" y2="250" stroke="#A1A1AA" stroke-width="1.6" marker-end="url(#ag)"/>
+        <text x="434" y="268" text-anchor="middle" font-size="10" font-family="monospace" fill="#71717A">covers: [REQ-ID]</text>
+
+        <!-- service -> board -->
+        <line x1="695" y1="322" x2="695" y2="356" stroke="#7C3AED" stroke-width="2" marker-end="url(#ap)"/>
+        <text x="705" y="344" font-size="9.5" font-family="monospace" fill="#7C3AED">story ↔ ticket (stav)</text>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:#0C87B8"></i> targets — hub říká „týká se služby X"</span>
+      <span><i class="dot" style="background:#A1A1AA"></i> covers — service říká „plním REQ Y"</span>
+      <span><i class="dot" style="background:#7C3AED"></i> story ↔ ticket — stav na boardu</span>
+    </div>
+    <div class="note2"><b>Životní cyklus:</b> hub-složka projektu se po dokončení zavře, ale co projekt přidal do <code>service/context/</code> (kontrakt, ADR) <b>zůstává</b> a obohacuje službu pro další projekty. Proto je service repo dlouhověký a&nbsp;sdílený, hub dočasný.</div>
+  </div>
+
+  <div class="foot">QEST PMO · datový model · topologie · toolchain · v0.2 · zakotveno v reálných Notion DB (Products / Service Catalog / Projects)</div>
 </div>
