@@ -1,0 +1,219 @@
+<meta charset="UTF-8">
+<title>Datový model, topologie a toolchain — agentický vývoj</title>
+<style>
+  :root{
+    --cyan:#83E1FF; --cyan6:#0C87B8; --cyanink:#04222E; --cyan50:#EAF9FF;
+    --ink:#0A0A0B; --white:#fff;
+    --g50:#F7F7F8; --g100:#F4F4F5; --g200:#EBEBEF; --g300:#D4D4D8; --g400:#A1A1AA; --g500:#71717A; --g600:#52525B; --g700:#3F3F46;
+    --bg:#F4F4F5; --surface:#fff; --surface2:#F7F7F8; --border:#EBEBEF; --bstrong:#D4D4D8;
+    --text:#0A0A0B; --t2:#52525B; --t3:#A1A1AA;
+    --notion:#D97706; --git:#0C87B8; --board:#7C3AED; --code:#0A0A0B;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --head:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:"Geist Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1060px;margin:0 auto;padding:44px 24px 96px}
+  .kicker{font-family:var(--mono);font-weight:200;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin:0 0 14px}
+  h1{font-family:var(--head);font-weight:800;font-size:clamp(28px,4.6vw,42px);line-height:1.05;letter-spacing:-.01em;margin:0 0 16px;color:#fff}
+  .hero{background:var(--ink);padding:40px;position:relative;overflow:hidden}
+  .hero p{color:var(--g300);max-width:72ch}
+  .hero code{color:var(--cyan);font-family:var(--mono)}
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.15;pointer-events:none;width:300px;height:300px;background:#83E1FF;right:-60px;top:-100px}
+  .sec{margin-top:50px}
+  .sk{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan6);margin:0 0 6px}
+  h2{font-family:var(--head);font-weight:800;font-size:23px;margin:0 0 12px;letter-spacing:-.01em}
+  h3{font-family:var(--head);font-weight:800;font-size:16px;margin:0 0 6px}
+  p{margin:0 0 14px;color:var(--t2);max-width:76ch}
+  b{color:var(--text);font-weight:600}
+  code{font-family:var(--mono);font-size:.9em;color:var(--cyan6)}
+  table.t{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border:1px solid var(--border);margin-top:14px}
+  table.t th{font-family:var(--mono);font-weight:400;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);text-align:left;padding:10px 12px;border-bottom:1px solid var(--bstrong);background:var(--surface2);vertical-align:top}
+  table.t td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--t2);vertical-align:top}
+  table.t tr:last-child td{border-bottom:0}
+  table.t td b{color:var(--text)}
+  .cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+  .card{background:var(--surface);border:1px solid var(--border);padding:18px;border-top:3px solid var(--c)}
+  .card .tagm{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--c)}
+  .card h3{margin-top:4px}
+  .card p{font-size:13px;margin:6px 0 0}
+  .card .ex{font-size:12px;color:var(--t3);margin-top:10px;border-top:1px dashed var(--bstrong);padding-top:8px}
+  .card .ex b{color:var(--text)}
+  /* tool lanes */
+  .lane{display:flex;align-items:stretch;border:1px solid var(--border);margin-top:12px;background:var(--surface)}
+  .lane .lab{flex:none;width:150px;padding:14px 14px;border-left:5px solid var(--c);background:var(--surface2)}
+  .lane .lab .nm{font-family:var(--head);font-weight:800;font-size:14px;color:var(--c)}
+  .lane .lab .ds{font-size:11px;color:var(--t3);margin-top:2px}
+  .lane .body{flex:1;padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .chip{font-family:var(--mono);font-size:12px;padding:5px 10px;border:1px solid var(--bstrong);background:var(--surface);color:var(--text)}
+  .chip.k{border-color:var(--git);color:var(--git6,#0C87B8)}
+  .laneflow{text-align:center;font-family:var(--mono);font-size:16px;color:var(--cyan6);margin:2px 0}
+  /* trees */
+  .tree{background:var(--ink);color:#E4E4E7;font-family:var(--mono);font-size:12.5px;line-height:1.8;padding:20px 22px;overflow-x:auto;white-space:pre;margin-top:12px}
+  .tree .dir{color:var(--cyan)} .tree .cmt{color:var(--g500)} .tree .hi{color:#FDDF74}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  .heur{border-left:3px solid var(--cyan);background:var(--cyan50);padding:14px 18px;margin-top:12px;font-size:14px;color:var(--cyanink)}
+  .note2{background:var(--surface2);border:1px solid var(--border);padding:13px 16px;margin-top:14px;font-size:13px;color:var(--t2)}
+  .note2 b{color:var(--text)}
+  ul.flat{list-style:none;padding:0;margin:10px 0 0}
+  ul.flat li{position:relative;padding-left:18px;margin-bottom:7px;font-size:13.5px;color:var(--t2)}
+  ul.flat li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;background:var(--cyan)}
+  ul.flat li b{color:var(--text)}
+  /* flow steps */
+  ol.flow{counter-reset:s;list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  ol.flow li{counter-increment:s;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--c);padding:16px 14px;position:relative}
+  ol.flow li .role{font-family:var(--head);font-weight:800;font-size:15px}
+  ol.flow li .where{font-family:var(--mono);font-size:10.5px;color:var(--c);text-transform:uppercase;letter-spacing:.06em;margin:4px 0 8px}
+  ol.flow li .out{font-size:12.5px;color:var(--t2)}
+  ol.flow li::before{content:counter(s);position:absolute;top:-12px;left:14px;width:24px;height:24px;background:var(--ink);color:#fff;font-family:var(--head);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--t2)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;display:inline-block}
+  .foot{margin-top:60px;padding-top:18px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:.04em}
+  @media(max-width:860px){.cards3,.two{grid-template-columns:1fr}ol.flow{grid-template-columns:1fr 1fr}.lane{flex-direction:column}.lane .lab{width:auto;border-left:none;border-top:5px solid var(--c)}}
+</style>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="blob"></div>
+    <p class="kicker">Datový model · topologie repozitářů · co kam patří</p>
+    <h1>Jak to postavit od&nbsp;dat</h1>
+    <p>Tři úrovně domény (<b style="color:#fff">Projekt × Produkt × Service</b>) napříč mnoha repozitáři. Registr identit a&nbsp;vztahů <b style="color:#fff">už existuje v&nbsp;Notionu</b> (Products DB, Service Catalog, Projects DB). Na něm stavíme: kontrakt do <code>GIT</code>, stav na <code>Board</code>, živá vrstva a&nbsp;registr v&nbsp;<code>Notion</code>.</p>
+  </div>
+
+  <!-- 1 · TŘI ÚROVNĚ -->
+  <div class="sec">
+    <p class="sk">1 — Doména</p>
+    <h2>Tři úrovně: Projekt × Produkt × Service</h2>
+    <p>Tohle je páteř celého modelu — bez něj nejde rozhodnout, co kam patří. Úrovně se kříží: jeden projekt zasahuje do více produktů, jeden produkt sdílí více services.</p>
+    <div class="cards3">
+      <div class="card" style="--c:var(--board)">
+        <span class="tagm">aktivita · cross-product</span>
+        <h3>Projekt</h3>
+        <p>Iniciativa zlepšující proces, většinou <b>napříč produkty</b> (může být i jedno-produktová). Má cíl, stakeholdery, časový rámec.</p>
+        <div class="ex"><b>Smart Redirection</b> — zasahuje DPD Box, Boxy 3 stran, My Pickup; prolíná různé uživatele.</div>
+      </div>
+      <div class="card" style="--c:var(--notion)">
+        <span class="tagm">aplikace · jasní uživatelé</span>
+        <h3>Produkt</h3>
+        <p>Ucelená aplikace s&nbsp;jasnými uživateli a&nbsp;Product Ownerem. Skládá se ze sady services.</p>
+        <div class="ex"><b>Locker-service (DPD-BOX)</b> — PO, Status „In Production", repos <code>lockers-node, universe-react</code>.</div>
+      </div>
+      <div class="card" style="--c:var(--git)">
+        <span class="tagm">komponenta · sdílitelná</span>
+        <h3>Service</h3>
+        <p>Nasaditelná komponenta, kterou <b>může sdílet více produktů</b>. Má tech leada, severity, prostředí.</p>
+        <div class="ex"><b>LockersReservationApiProd</b> — „API for receiving reservations from MID", ECS AWS, Severity&nbsp;A.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 · DATOVÝ MODEL -->
+  <div class="sec">
+    <p class="sk">2 — Datový model</p>
+    <h2>Entity a vztahy (na čem stavíme)</h2>
+    <p>Registr Projekt↔Produkt↔Service už v&nbsp;Notionu je (relace mezi DB). Přidáváme tři nové entity kontraktní vrstvy: <b>Requirement</b>, <b>Story</b>, <b>ADR</b> — a stav drží <b>Ticket</b> na boardu.</p>
+    <table class="t">
+      <tr><th>Entita</th><th>Co to je</th><th>Klíčové vztahy</th><th>Primární domov</th></tr>
+      <tr><td><b>Projekt</b></td><td>cross-product iniciativa</td><td>M:N → Produkt</td><td>Notion (Projects DB)</td></tr>
+      <tr><td><b>Produkt</b></td><td>aplikace s uživateli</td><td>1:N → Service · M:N → Projekt</td><td>Notion (Products DB)</td></tr>
+      <tr><td><b>Service</b></td><td>sdílitelná komponenta</td><td>→ Produkt · 1:1 → Repository</td><td>Notion (Service Catalog)</td></tr>
+      <tr><td><b>Repository</b></td><td>kódový repozitář (Azure DevOps)</td><td>nese kód + service kontext</td><td>GIT</td></tr>
+      <tr><td><b>Requirement + AC</b></td><td>atomický požadavek s akceptačními kritérii</td><td>patří Projektu · cílí na Service(y)</td><td><b>GIT</b></td></tr>
+      <tr><td><b>Story / Task</b></td><td>jednotka práce</td><td>covers Requirement · 1:1 Ticket</td><td>GIT (spec) + Board (stav)</td></tr>
+      <tr><td><b>ADR</b></td><td>rozhodnutí</td><td>relates_to Requirement / architektura</td><td><b>GIT</b></td></tr>
+      <tr><td><b>Ticket</b></td><td>stav práce</td><td>zrcadlí Story</td><td><b>Board</b></td></tr>
+    </table>
+
+    <h3 style="margin-top:26px">Tři vrstvy podle nástroje (a jak do sebe zapadají)</h3>
+    <div class="lane"><div class="lab" style="--c:var(--notion)"><div class="nm">Notion</div><div class="ds">registr + živá vrstva</div></div>
+      <div class="body"><span class="chip">Projekt</span><span class="chip">Produkt</span><span class="chip">Service</span><span class="chip">Clients · Teams</span><span class="chip">Budget · RAID</span><span class="chip">Meeting zápisy · Post-mortems</span></div>
+    </div>
+    <div class="laneflow">↓ &nbsp; BA destiluje záměr do kontraktu</div>
+    <div class="lane"><div class="lab" style="--c:var(--git)"><div class="nm">GIT</div><div class="ds">kontrakt</div></div>
+      <div class="body"><span class="chip">Requirement + AC</span><span class="chip">ADR</span><span class="chip">Story (spec)</span><span class="chip">architektura · integrační kontrakty</span><span class="chip">conventions · guardrails</span><span class="chip">kód</span></div>
+    </div>
+    <div class="laneflow">↓ &nbsp; Story dostane stav a&nbsp;assignee</div>
+    <div class="lane"><div class="lab" style="--c:var(--board)"><div class="nm">Board</div><div class="ds">stav</div></div>
+      <div class="body"><span class="chip">Ticket: stav</span><span class="chip">assignee</span><span class="chip">sprint</span><span class="chip">priorita</span><span class="chip">odkaz → Requirement v GITu</span></div>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--notion)"></i> Notion — identita, vztahy, živé</span>
+      <span><i class="dot" style="background:var(--git)"></i> GIT — durable kontrakt</span>
+      <span><i class="dot" style="background:var(--board)"></i> Board — rychlý stav</span>
+    </div>
+  </div>
+
+  <!-- 3 · CO KDE A PROČ -->
+  <div class="sec">
+    <p class="sk">3 — Co kde a proč</p>
+    <h2>Tool matrix + synchronizace</h2>
+    <p>Spojovník napříč nástroji je <b>stabilní ID</b> (Project / Product / Service / REQ / Story). Notion drží identitu, git kontrakt, board stav — a každý odkazuje přes ID, nic se needuplikuje.</p>
+    <table class="t">
+      <tr><th>Co</th><th>Notion</th><th>GIT</th><th>Board</th><th>Proč tak</th></tr>
+      <tr><td><b>Identita & vztahy</b><br>Projekt/Produkt/Service</td><td>✓ zdroj pravdy (DB + relace)</td><td>odkaz přes ID</td><td>label / area path</td><td>Notion to už umí (relace, views, přístup pro ne-vývojáře)</td></tr>
+      <tr><td><b>Requirement + AC</b></td><td>—</td><td>✓ zdroj pravdy</td><td>—</td><td>atomicky s kódem, validace, audit „proč"</td></tr>
+      <tr><td><b>ADR / architektura / kontrakty</b></td><td>—</td><td>✓</td><td>—</td><td>agent to čte; nesmí driftovat od kódu</td></tr>
+      <tr><td><b>Story</b></td><td>—</td><td>✓ spec (covers REQ)</td><td>✓ ticket</td><td>detail pro agenta v gitu, stav na boardu</td></tr>
+      <tr><td><b>Stav · assignee · sprint</b></td><td>—</td><td>— (netáhne se)</td><td>✓ zdroj pravdy</td><td>rychlá vrstva; lidský přehled „kdo / co / kde je"</td></tr>
+      <tr><td><b>Wiki produktu</b> (API, use-cases, diagramy)</td><td>✓</td><td>kontraktní výtah (API schema)</td><td>—</td><td>bohatý lidský obsah → Notion; strojový kontrakt → git</td></tr>
+      <tr><td><b>Clients · Teams · Budget · RAID · zápisy · post-mortems</b></td><td>✓</td><td>—</td><td>—</td><td>živá lidská vrstva</td></tr>
+    </table>
+    <div class="heur"><b>Synchronizace:</b> žádný obousměrný sync obsahu. Spojuje se přes <b>ID</b>: Board ticket nese odkaz na Requirement v&nbsp;gitu; Notion entity i&nbsp;git i&nbsp;board používají stejné Project/Product/Service ID. <b>Stav teče z&nbsp;boardu, kontrakt z&nbsp;gitu, identita z&nbsp;Notionu.</b></div>
+  </div>
+
+  <!-- 4 · TOPOLOGIE REPOZITÁŘŮ -->
+  <div class="sec">
+    <p class="sk">4 — Topologie</p>
+    <h2>Struktura repozitářů — mnoho repů + jeden hub</h2>
+    <p>Klíčové napětí: projekt je <b>cross-repo</b> (zasahuje víc produktů/services), ale chcete <b>jeden repozitář pro projektové záležitosti</b>. Řešení = dvě vrstvy, ne konflikt: <b>projektový kontext do hubu</b> (cross-repo), <b>service kontext zůstává u kódu</b> (lokální).</p>
+    <div class="two">
+      <div>
+        <h3>Hub — jeden repo pro projekty</h3>
+        <div class="tree"><span class="dir">project-hub/</span>            <span class="cmt"># 1 repo, domov PM/BA</span>
+├─ <span class="dir">projects/</span>
+│  └─ <span class="dir">smart-redirection/</span>
+│     ├─ vision.md
+│     ├─ <span class="dir">requirements/</span>   <span class="cmt"># cross-product REQ+AC</span>
+│     ├─ <span class="dir">decisions/</span>      <span class="cmt"># projektové ADR</span>
+│     ├─ stories.md       <span class="cmt"># index → Board + repo</span>
+│     └─ <span class="hi">affects.yaml</span>     <span class="cmt"># dotčené produkty/services</span>
+├─ <span class="dir">registry/</span>           <span class="cmt"># zrcadlo IDs z Notionu</span>
+│  ├─ products.yaml
+│  └─ services.yaml      <span class="cmt"># ID → repo URL</span>
+└─ glossary.md</div>
+      </div>
+      <div>
+        <h3>Service repo — kontext u kódu</h3>
+        <div class="tree"><span class="dir">lockers-node/</span>           <span class="cmt"># existující repo služby</span>
+├─ AGENTS.md
+├─ <span class="dir">context/</span>
+│  ├─ <span class="dir">architecture/</span>   <span class="cmt"># overview, data-model</span>
+│  │  └─ integrations.md  <span class="cmt"># API/eventy (kontrakt)</span>
+│  ├─ <span class="dir">decisions/</span>      <span class="cmt"># service ADR</span>
+│  ├─ <span class="dir">requirements/</span>   <span class="cmt"># jedno-service REQ</span>
+│  └─ <span class="dir">conventions/</span>    <span class="cmt"># standards, guardrails</span>
+├─ core/ infrastructure/ interface/
+└─ tests/</div>
+      </div>
+    </div>
+    <div class="note2"><b>Most přes ID:</b> requirement v&nbsp;hubu nese <code>targets: [SERVICE-ID]</code> + odkaz na repo z&nbsp;<code>registry/services.yaml</code>; kód v&nbsp;service repu nese <code>REQ-ID</code>. <b>Pravidlo umístění:</b> cross-product požadavek → hub; jedno-service požadavek → service repo. Mnoho repů nekonsolidujeme — konsolidujeme jen <b>projektový kontext</b> a&nbsp;registr.</div>
+  </div>
+
+  <!-- 5 · FLOW -->
+  <div class="sec">
+    <p class="sk">5 — Proces</p>
+    <h2>Flow: BA → PM + Tech Lead → QA</h2>
+    <p>Každá role má vstupní nástroj a&nbsp;jasný výstup. Stav je vždy na boardu, kontrakt vždy v&nbsp;gitu.</p>
+    <ol class="flow">
+      <li style="--c:var(--notion)"><div class="role">Business analytik</div><div class="where">Notion → GIT</div><div class="out">Ověří Projekt a&nbsp;dotčené produkty/services (Notion), pak napíše <b>requirements + AC</b> do hubu (git).</div></li>
+      <li style="--c:var(--board)"><div class="role">PM</div><div class="where">GIT → Board</div><div class="out">Z requirementů založí <b>epics/stories</b> na boardu, plánuje, hlídá stav a&nbsp;scope (git-diff).</div></li>
+      <li style="--c:var(--git)"><div class="role">Tech Lead</div><div class="where">GIT (service repo)</div><div class="out">Architektura + <b>ADR</b>, rozpad na service stories přes dotčené repo, nastaví guardrails. Pak agent + Dev review.</div></li>
+      <li style="--c:var(--cyan6)"><div class="role">QA</div><div class="where">GIT + Board + Notion</div><div class="out">Z AC <b>acceptance testy</b> (nezávisle), drží test-gate a&nbsp;sign-off; test plány do Notionu.</div></li>
+    </ol>
+    <div class="note2"><b>Pořadí předávek:</b> BA (co a proč) → PM (plán a stav) + Tech Lead (jak) → agent (implementace) → Dev (review) → QA (kvalita a sign-off). Lidské rozhodovací body: AC, architektura, PR review, test-gate.</div>
+  </div>
+
+  <div class="foot">QEST PMO · datový model · topologie · toolchain · v0.1 · zakotveno v reálných Notion DB (Products / Service Catalog / Projects)</div>
+</div>
