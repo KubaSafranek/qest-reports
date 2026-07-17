@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprint 7 Review — BALTICS Locker Platform</title>
+<style>
+:root {
+  --done: #22c55e;
+  --near-done: #f59e0b;
+  --progress: #3b82f6;
+  --blocked: #ef4444;
+  --other: #64748b;
+  --dpd-red: #DC0032;
+  --bg: #0f172a;
+  --card: #1e293b;
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; }
+
+.header { background: linear-gradient(135deg, #1a0a12 0%, #1e293b 60%, #0f172a 100%); border-bottom: 2px solid var(--dpd-red); padding: 20px 32px; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.header-left h1 { font-size: 22px; font-weight: 700; color: #fff; }
+.header-left .subtitle { color: var(--muted); font-size: 13px; margin-top: 3px; }
+.header-goal { flex: 1; background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.25); border-radius: 8px; padding: 10px 16px; margin: 0 16px; }
+.header-goal .goal-label { font-size: 10px; font-weight: 700; color: var(--done); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.header-goal .goal-text { font-size: 14px; font-weight: 700; color: #fff; }
+.dpd-badge { background: var(--dpd-red); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 4px; letter-spacing: 1px; white-space: nowrap; align-self: flex-start; }
+
+.tabs { display: flex; background: var(--card); border-bottom: 1px solid var(--border); padding: 0 24px; overflow-x: auto; }
+.tab { padding: 13px 20px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 3px solid transparent; white-space: nowrap; transition: all .15s; }
+.tab:hover { color: var(--text); }
+.tab.active { color: #fff; border-bottom-color: var(--dpd-red); }
+
+.content { display: none; padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+.content.active { display: block; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+.card-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 10px; }
+
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+.kpi { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; position: relative; overflow: hidden; }
+.kpi::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background: var(--accent-color, var(--accent)); }
+.kpi .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; margin-bottom: 6px; }
+.kpi .kpi-value { font-size: 32px; font-weight: 800; line-height: 1; }
+.kpi .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+.kpi.green { --accent-color: var(--done); } .kpi.green .kpi-value { color: var(--done); }
+.kpi.amber { --accent-color: var(--near-done); } .kpi.amber .kpi-value { color: var(--near-done); }
+.kpi.red { --accent-color: var(--blocked); } .kpi.red .kpi-value { color: var(--blocked); }
+.kpi.blue { --accent-color: var(--progress); } .kpi.blue .kpi-value { color: var(--progress); }
+.kpi.gray { --accent-color: var(--other); } .kpi.gray .kpi-value { color: var(--text); }
+
+.pbar-wrap { background: #0f172a; border-radius: 6px; height: 12px; overflow: hidden; margin: 8px 0; }
+.pbar { height: 100%; border-radius: 6px; }
+.pbar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { padding: 9px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); border-bottom: 1px solid var(--border); }
+td { padding: 9px 12px; border-bottom: 1px solid #1e2a3a; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,.03); }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.badge-done { background: rgba(34,197,94,.15); color: var(--done); }
+.badge-nd { background: rgba(245,158,11,.15); color: var(--near-done); }
+.badge-blocked { background: rgba(239,68,68,.15); color: var(--blocked); }
+.badge-progress { background: rgba(59,130,246,.15); color: var(--progress); }
+.badge-other { background: rgba(100,116,139,.15); color: var(--muted); }
+.badge-bug { background: rgba(239,68,68,.1); color: #fca5a5; }
+.badge-task { background: rgba(59,130,246,.1); color: #93c5fd; }
+.badge-subtask { background: rgba(168,85,247,.1); color: #c4b5fd; }
+.badge-qa { background: rgba(56,189,248,.15); color: var(--accent); }
+.badge-stopped { background: rgba(100,116,139,.1); color: #64748b; }
+
+.section-title { font-size: 15px; font-weight: 700; color: #fff; margin: 20px 0 12px; display: flex; align-items: center; gap: 8px; }
+.section-title::after { content:''; flex:1; height:1px; background: var(--border); }
+
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.dot-done { background: var(--done); }
+.dot-nd { background: var(--near-done); }
+.dot-progress { background: var(--progress); }
+.dot-blocked { background: var(--blocked); }
+.dot-other { background: var(--other); }
+
+.dev-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.dev-bar-name { min-width: 140px; font-size: 12px; color: var(--text); text-align: right; }
+.dev-bar-track { flex: 1; background: #0f172a; border-radius: 6px; height: 22px; overflow: hidden; display: flex; }
+.seg-done { background: var(--done); height: 100%; }
+.seg-nd { background: var(--near-done); height: 100%; }
+.seg-other { background: #334155; height: 100%; }
+.dev-bar-counts { font-size: 12px; color: var(--muted); min-width: 190px; }
+
+.ticket-group { margin-bottom: 16px; }
+.ticket-group-title { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; padding: 4px 8px; background: rgba(56,189,248,.08); border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0; }
+.ticket-row { display: flex; align-items: center; gap: 8px; padding: 5px 4px; border-radius: 4px; }
+.ticket-row:hover { background: rgba(255,255,255,.03); }
+.ticket-key { font-size: 11px; color: var(--accent); font-weight: 600; min-width: 80px; text-decoration: none; }
+.ticket-key:hover { text-decoration: underline; }
+.ticket-summary { flex: 1; font-size: 12px; color: var(--text); }
+.ticket-who { font-size: 11px; color: var(--muted); min-width: 110px; text-align: right; }
+
+.highlight-box { border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.highlight-green { background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.2); }
+.highlight-amber { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.2); }
+.highlight-red { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); }
+.highlight-blue { background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); }
+.highlight-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.highlight-green .highlight-title { color: var(--done); }
+.highlight-amber .highlight-title { color: var(--near-done); }
+.highlight-red .highlight-title { color: var(--blocked); }
+.highlight-blue .highlight-title { color: var(--progress); }
+.highlight-body { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+.risk-row { border-left: 3px solid; }
+.risk-high { border-color: var(--blocked); }
+.risk-medium { border-color: var(--near-done); }
+.risk-low { border-color: var(--done); }
+
+.delta-bar-wrap { background: #0f172a; border-radius: 4px; height: 8px; overflow: hidden; margin-top: 4px; }
+.delta-bar-over { background: var(--blocked); height: 100%; border-radius: 4px; }
+.delta-bar-under { background: var(--done); height: 100%; border-radius: 4px; }
+.delta-bar-ok { background: var(--progress); height: 100%; border-radius: 4px; }
+
+.footnote { font-size: 11px; color: var(--muted); margin-top: 12px; font-style: italic; line-height: 1.5; }
+
+.milestone-row { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.milestone-row:last-child { border-bottom: none; }
+.milestone-date { font-size: 12px; color: var(--muted); min-width: 90px; }
+.milestone-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+.milestone-status { font-size: 12px; }
+
+.agenda-item { display: flex; gap: 16px; padding: 10px 0; border-bottom: 1px solid #1e2a3a; }
+.agenda-item:last-child { border-bottom: none; }
+.agenda-time { font-size: 13px; font-weight: 700; color: var(--accent); min-width: 80px; }
+.agenda-topic { flex: 1; }
+.agenda-topic-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.agenda-topic-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.agenda-owner { font-size: 12px; color: var(--muted); min-width: 120px; text-align: right; }
+
+.capacity-bar { display: flex; gap: 2px; height: 32px; border-radius: 6px; overflow: hidden; margin: 12px 0; }
+.cap-done-seg { background: var(--done); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+.cap-nd-seg { background: var(--near-done); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+.cap-remain-seg { background: #1e2a3a; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); border-radius: 0 6px 6px 0; }
+
+.zero-track-table td { font-size: 12px; }
+.zero-done-row td { color: var(--muted); }
+.zero-active-row td { color: var(--text); }
+
+.recon-table td { font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Sprint 7 Review</h1>
+    <div class="subtitle">BALTICS Locker Platform · July 3 – July 17, 2026 · Box Sprint 7</div>
+  </div>
+  <div class="header-goal">
+    <div class="goal-label">Sprint Goal</div>
+    <div class="goal-text">Lock'Hub locker observability (connection status, audit log, screen mirroring) and technician compartment-management flows</div>
+  </div>
+  <div class="dpd-badge">DPD BALTICS</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(0)">Overview</div>
+  <div class="tab" onclick="switchTab(1)">Team &amp; Velocity</div>
+  <div class="tab" onclick="switchTab(2)">Estimates vs Actual</div>
+  <div class="tab" onclick="switchTab(3)">Delivered</div>
+  <div class="tab" onclick="switchTab(4)">Blockers &amp; Risks</div>
+  <div class="tab" onclick="switchTab(5)">Agenda</div>
+</div>
+
+<!-- TAB 0: OVERVIEW -->
+<div class="content active" id="tab-0">
+
+  <div class="footnote" style="margin-bottom:14px">Shown: only tickets with hours tracked in the sprint window July 3 – July 17, 2026 (<strong>31 of 131</strong> board tickets). 67 Done tickets were completed and tracked before this sprint started — excluded from the KPIs below, listed separately in the Team tab. Data pulled <strong>July 16, 2026 — one day before sprint end</strong>; final-day tracking may be incomplete. See the hours-reconciliation note under the KPIs before treating tracked hours as final.</div>
+
+  <!-- KPI Row -->
+  <div class="grid-4">
+    <div class="kpi green">
+      <div class="kpi-label">Done</div>
+      <div class="kpi-value">77.4%</div>
+      <div class="kpi-sub">24 of 31 sprint-active tickets</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Near Done</div>
+      <div class="kpi-value">6</div>
+      <div class="kpi-sub">Peer review · To be tested · Test</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Done + Near Done</div>
+      <div class="kpi-value">30</div>
+      <div class="kpi-sub">96.8% of sprint-active tickets</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Sprint Hours (Jira worklogs)</div>
+      <div class="kpi-value">221.6h</div>
+      <div class="kpi-sub">≈ 27.7 MD · Jira-only, see reconciliation below</div>
+    </div>
+  </div>
+
+  <!-- Hours reconciliation -->
+  <div class="highlight-box highlight-blue" style="margin-bottom:20px">
+    <div class="highlight-title">Hours reconciliation — why the Jira figure looks low</div>
+    <div class="highlight-body">
+      The 221.6 h Jira-worklog headline is a <strong>tracking-coverage floor, not a productivity drop</strong>. Two systems measure different scopes and different people:
+      <table class="recon-table" style="margin-top:8px">
+        <tbody>
+          <tr><td style="width:52%"><strong>Jira per-ticket worklogs</strong> (Jul 3–16, 6 contributors)</td><td style="color:var(--accent);font-weight:700">221.6 h</td><td style="color:var(--muted)">includes the 2 DGITS devs, excludes ceremonies</td></tr>
+          <tr><td><strong>Costlocker — Qest team</strong>, same window</td><td style="color:var(--accent);font-weight:700">269.0 h</td><td style="color:var(--muted)">incl. standups, analysis, PM/BA/QA</td></tr>
+          <tr><td>&nbsp;&nbsp;↳ DGITS devs (Á. Páska, B. Árvay) — Jira only, <em>absent from Costlocker</em></td><td style="color:var(--muted)">≈ 101 h</td><td style="color:var(--muted)">tracked in Jira, not Qest's Costlocker</td></tr>
+        </tbody>
+      </table>
+      Cross-check on overlapping devs is consistent (Roudný 52.7 h Jira ≈ 49.5 h Costlocker). The gap is real coverage, not lost work: <strong>Dan Zatloukal logged 29.4 h to Costlocker but only 1.2 h to Jira worklogs</strong> this window, and the two DGITS developers never appear in Costlocker at all. Combined dev effort is roughly in line with a normal sprint (~300+ h) — but per-ticket Jira tracking is under-filled. <strong>Action: close the Jira-worklog gap so the sprint burn is trustworthy from one source.</strong>
+    </div>
+  </div>
+
+  <!-- Status Distribution -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Status Distribution — 31 sprint-active tickets</div>
+
+      <div style="margin-bottom:14px">
+        <div class="pbar-label"><span><span class="dot dot-done"></span>Done</span><span>24 (77.4%)</span></div>
+        <div class="pbar-wrap"><div class="pbar" style="width:77.4%;background:var(--done)"></div></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="pbar-label"><span><span class="dot dot-nd"></span>Peer review</span><span>3 (9.7%)</span></div>
+        <div class="pbar-wrap"><div class="pbar" style="width:9.7%;background:var(--near-done)"></div></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="pbar-label"><span><span class="dot dot-nd"></span>To be tested</span><span>2 (6.5%)</span></div>
+        <div class="pbar-wrap"><div class="pbar" style="width:6.5%;background:var(--near-done)"></div></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="pbar-label"><span><span class="dot dot-nd"></span>Test</span><span>1 (3.2%)</span></div>
+        <div class="pbar-wrap"><div class="pbar" style="width:3.2%;background:var(--near-done)"></div></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="pbar-label"><span><span class="dot dot-progress"></span>In Progress</span><span>1 (3.2%)</span></div>
+        <div class="pbar-wrap"><div class="pbar" style="width:3.2%;background:var(--progress)"></div></div>
+      </div>
+      <div class="footnote" style="margin-top:0">Among tickets actually worked this sprint, only <strong>one</strong> (DPDB-826) is still mid-flight — everything else is Done or waiting in review/test. That is a healthy end-of-sprint pipeline.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Type Breakdown (sprint-active)</div>
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Total</th><th>Done</th><th>Near Done</th><th>Other</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-task">Task</span></td>
+            <td>5</td>
+            <td style="color:var(--done)">4</td>
+            <td style="color:var(--near-done)">1</td>
+            <td style="color:var(--muted)">0</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-subtask">Sub-task</span></td>
+            <td>18</td>
+            <td style="color:var(--done)">13</td>
+            <td style="color:var(--near-done)">4</td>
+            <td style="color:var(--muted)">1</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-bug">Bug</span></td>
+            <td>8</td>
+            <td style="color:var(--done)">7</td>
+            <td style="color:var(--near-done)">1</td>
+            <td style="color:var(--muted)">0</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="footnote">Bugs are intentionally unestimated — not objectively possible to estimate reliably. 8 bugs were worked this sprint (7 Done, 1 in review); board total is 11 bugs. The single "Other" is DPDB-826 (Sub-task, In Progress).</div>
+    </div>
+  </div>
+
+  <!-- Sprint Highlights -->
+  <div class="section-title">Sprint Highlights</div>
+  <div class="grid-3">
+    <div class="highlight-box highlight-green">
+      <div class="highlight-title">Lock'Hub Observability — Sprint Goal Delivered</div>
+      <div class="highlight-body">The core of the sprint goal landed: global <strong>Audit Log screen</strong> (DPDB-782), locker <strong>connection-status tracking + exposure</strong> (DPDB-798/799/800), and <strong>Lock'App screen capture → Lock'Hub mirroring</strong> (DPDB-836/837) all Done. Connection-lost handling across flows (DPDB-906) is in test.</div>
+    </div>
+    <div class="highlight-box highlight-blue">
+      <div class="highlight-title">Compartment Ops &amp; Box-History Fixes</div>
+      <div class="highlight-body">Operate-compartments actions (DPDB-902) and technician Box-Check access (DPDB-793) Done; open/set-status (DPDB-795) and show-all-compartments (DPDB-794) in Peer review. Five box-history / locker bugs fixed (DPDB-867/875/876/878/882); one more (DPDB-874, timestamp ordering) in review.</div>
+    </div>
+    <div class="highlight-box highlight-red">
+      <div class="highlight-title">POS Started · Meta-API Blocked 3rd Sprint</div>
+      <div class="highlight-body">POS terminal discovery (DPDB-854) is now Done and PoSXML payment integration (DPDB-568) has moved to In Progress. But <strong>DPDB-687 (Meta-API shipment creation for buy-label) is Blocked for a 3rd consecutive sprint</strong> (S5 → S6 → S7) — needs escalation, not another carry-over.</div>
+    </div>
+  </div>
+
+  <!-- Milestone & Capacity -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Milestones to Release</div>
+      <div class="milestone-row">
+        <div class="milestone-date">Oct 1, 2026</div>
+        <div class="milestone-name">Release target (EE/LV/LT)</div>
+        <div class="milestone-status"><span class="badge badge-nd">~5 sprints left</span></div>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-date">Q1 2027</div>
+        <div class="milestone-name">LT certification</div>
+        <div class="milestone-status"><span class="badge badge-other">Planned</span></div>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-date">Jul 14</div>
+        <div class="milestone-name">POS terminals (Hansab) &amp; Ingenico cert</div>
+        <div class="milestone-status"><span class="badge badge-nd">Cert planning started</span></div>
+      </div>
+      <div class="milestone-row">
+        <div class="milestone-date">Closed</div>
+        <div class="milestone-name">Online payment gateway decision</div>
+        <div class="milestone-status"><span class="badge badge-done">Out of scope</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Capacity — Sprint 7 (per-ticket Jira worklogs)</div>
+      <div class="capacity-bar">
+        <div class="cap-done-seg" style="width:61.6%">27.7 MD tracked (Jira)</div>
+        <div class="cap-remain-seg" style="width:38.4%">≈17 MD gap vs 45 MD</div>
+      </div>
+      <div class="footnote" style="margin-top:4px">45 MD (360 h) is the nominal capacity. Jira worklogs show 27.7 MD; Costlocker + DGITS Jira-only devs put true effort at ~37–45 MD (see reconciliation). The visible "gap" is mostly un-logged Jira time, not idle capacity.</div>
+      <div style="margin-top:14px" class="highlight-box highlight-red">
+        <div class="highlight-title" style="font-size:11px">Runway to Oct 1 — figure needs refresh</div>
+        <div class="highlight-body" style="font-size:12px">Standing context (585 MD / ~13 sprints, last updated May 7) is stale. As of Sprint 7 close (Jul 17) only <strong>~5 two-week sprints (~225 MD)</strong> remain before Oct 1. Re-validate remaining scope and sprint count with steering — see Blockers &amp; Risks.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Not completed (sprint-active) -->
+  <div class="card">
+    <div class="card-title">Worked but Not Done — 7 sprint-active tickets · status as of July 16, 2026</div>
+    <div class="footnote" style="margin-top:0;margin-bottom:12px">These 7 tickets were actively worked this sprint but have not reached Done. Grouped by current status — <strong>6 of the 7 are already in review or test</strong> (a strong close-out pipeline); only DPDB-826 is still mid-implementation.</div>
+    <div class="ticket-group"><div class="ticket-group-title" style="color:var(--progress);border-color:var(--progress);background:rgba(59,130,246,.06)">In Progress — not done (1)</div><div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-826" target="_blank">DPDB-826</a><span class="badge badge-subtask">Sub-task</span><span class="badge badge-progress" style="font-size:10px">In Progress</span><span class="ticket-summary">Receive and store locker layout on activation</span><span class="ticket-who">T. Papírník · 16.1h</span></div></div>
+    <div class="ticket-group"><div class="ticket-group-title" style="color:var(--near-done);border-color:var(--near-done);background:rgba(245,158,11,.06)">Peer review — not done (3)</div><div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-795" target="_blank">DPDB-795</a><span class="badge badge-subtask">Sub-task</span><span class="badge badge-nd" style="font-size:10px">Peer review</span><span class="ticket-summary">Open compartments and set status: single, sequential, by range</span><span class="ticket-who">B. Árvay · 34.2h</span></div>
+<div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-794" target="_blank">DPDB-794</a><span class="badge badge-subtask">Sub-task</span><span class="badge badge-nd" style="font-size:10px">Peer review</span><span class="ticket-summary">Show all compartments with their status</span><span class="ticket-who">B. Árvay · 13.1h</span></div>
+<div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-874" target="_blank">DPDB-874</a><span class="badge badge-bug">Bug</span><span class="badge badge-nd" style="font-size:10px">Peer review</span><span class="ticket-summary">[Box history] Wrong "occurredAt" timestamp breaks ordering of locker history</span><span class="ticket-who">Á. Páska · 4.0h</span></div></div>
+    <div class="ticket-group"><div class="ticket-group-title" style="color:var(--near-done);border-color:var(--near-done);background:rgba(245,158,11,.06)">To be tested — not done (2)</div><div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-906" target="_blank">DPDB-906</a><span class="badge badge-subtask">Sub-task</span><span class="badge badge-nd" style="font-size:10px">To be tested</span><span class="ticket-summary">Add connection-lost handling across flows</span><span class="ticket-who">D. Roudný · 16.6h</span></div>
+<div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-911" target="_blank">DPDB-911</a><span class="badge badge-task">Task</span><span class="badge badge-nd" style="font-size:10px">To be tested</span><span class="ticket-summary">ISO installer: prompt operator for timezone during install</span><span class="ticket-who">D. Roudný · 0.7h</span></div></div>
+    <div class="ticket-group"><div class="ticket-group-title" style="color:var(--near-done);border-color:var(--near-done);background:rgba(245,158,11,.06)">Test — not done (1)</div><div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-778" target="_blank">DPDB-778</a><span class="badge badge-subtask">Sub-task</span><span class="badge badge-nd" style="font-size:10px">Test</span><span class="ticket-summary">Print label in collection flow: Send print command &amp; implement new screens</span><span class="ticket-who">D. Roudný · 0.2h</span></div></div>
+  </div>
+
+  <!-- Sprint Add Timing -->
+  <div class="section-title">⏱ Sprint Add Timing — Open Tickets (not Done / not Near-Done)</div>
+  <div class="card">
+    <div class="footnote" style="margin-top:0;margin-bottom:12px">
+      When did each still-open ticket (In Progress · Blocked · To Do · Refinement · Backlog) actually enter Box Sprint 7? All 19 are <strong>Sub-tasks</strong>, which inherit their sprint from the parent Story — so the date is when the parent Story's Jira "Sprint" field first gained "DPD Box Sprint 7" (from changelog), except DPDB-924 which uses its own creation date. 11 Stopped (cancelled) tickets are excluded.
+      <strong style="color:var(--done)">16 of 19 were committed at sprint planning (Jul 2, the day before the Jul 3 start)</strong> — genuine sprint commitments. <strong style="color:var(--blocked)">Only 3 were added mid-sprint (🆕)</strong> and were never a full-sprint commitment: DPDB-828 &amp; DPDB-829 (parent Story DPDB-302 pulled from Sprint 8 into Sprint 7 on Jul 14) and DPDB-924 (created Jul 13).
+    </div>
+    <table class="new-week-table">
+      <thead><tr><th>Ticket</th><th>Summary</th><th>Assignee</th><th>Status</th><th>Added to Sprint 7</th></tr></thead>
+      <tbody>
+<tr class="new-week-row-flag"><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-828" target="_blank">DPDB-828</a></td><td>Report and store locker hardware info</td><td>Á. Páska</td><td><span class="badge badge-progress">In Progress</span></td><td>Jul 14, 2026 <span class="badge" style="background:rgba(239,68,68,.18);color:#fca5a5;font-size:9px;font-weight:800;margin-left:4px">🆕 MID-SPRINT</span></td></tr>
+<tr class="new-week-row-flag"><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-829" target="_blank">DPDB-829</a></td><td>Locker detail: software version + hardware tab</td><td>Á. Páska</td><td><span class="badge badge-other">To Do</span></td><td>Jul 14, 2026 <span class="badge" style="background:rgba(239,68,68,.18);color:#fca5a5;font-size:9px;font-weight:800;margin-left:4px">🆕 MID-SPRINT</span></td></tr>
+<tr class="new-week-row-flag"><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-924" target="_blank">DPDB-924</a></td><td>Show box visualization in range selection</td><td>Unassigned</td><td><span class="badge badge-other">Ready for Refinement</span></td><td>Jul 13, 2026 (created) <span class="badge" style="background:rgba(239,68,68,.18);color:#fca5a5;font-size:9px;font-weight:800;margin-left:4px">🆕 MID-SPRINT</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-826" target="_blank">DPDB-826</a></td><td>Receive and store locker layout on activation</td><td>T. Papírník</td><td><span class="badge badge-progress">In Progress</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-507" target="_blank">DPDB-507</a></td><td>Lock'Hub - Synchronize locker abilities to Lock'App</td><td>D. Roudný</td><td><span class="badge badge-progress">In Progress</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-548" target="_blank">DPDB-548</a></td><td>P1: Lock'app Dropoff - Buy Label Terms &amp; Conditions</td><td>B. Árvay</td><td><span class="badge badge-progress">In Progress</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-568" target="_blank">DPDB-568</a></td><td>Implement PoSXML payment terminal integration (immediate sale + reversal)</td><td>M. Choutka</td><td><span class="badge badge-progress">In Progress</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-687" target="_blank">DPDB-687</a></td><td>Meta-API shipment creation for the buy-label flow</td><td>D. Roudný</td><td><span class="badge badge-blocked">Blocked</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-789" target="_blank">DPDB-789</a></td><td>Price for Upgrade box</td><td>Unassigned</td><td><span class="badge badge-blocked">Blocked</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-855" target="_blank">DPDB-855</a></td><td>Cancel expired/abandoned pre-auths (pending pre-auth cleanup)</td><td>M. Choutka</td><td><span class="badge badge-blocked">Blocked</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-827" target="_blank">DPDB-827</a></td><td>Show locker layout in Lock'Hub detail</td><td>Unassigned</td><td><span class="badge badge-blocked">Blocked</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-558" target="_blank">DPDB-558</a></td><td>Implement AZTEC entry and validation</td><td>Unassigned</td><td><span class="badge badge-other">To Do</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-785" target="_blank">DPDB-785</a></td><td>Enforce driver permissions in Lock'App flows</td><td>T. Papírník</td><td><span class="badge badge-other">To Do</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-478" target="_blank">DPDB-478</a></td><td>Change logic of dirty (soiled) compartment (TBD)</td><td>Unassigned</td><td><span class="badge badge-other">Refinement</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-621" target="_blank">DPDB-621</a></td><td>[BE][LockApp] Drop-off proof - email backend</td><td>Unassigned</td><td><span class="badge badge-other">Refinement</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-622" target="_blank">DPDB-622</a></td><td>[FE][LockApp] Drop-off proof - email UI</td><td>Unassigned</td><td><span class="badge badge-other">Refinement</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-623" target="_blank">DPDB-623</a></td><td>[FE/BE][LockApp] Drop-off proof - print &amp; fallback</td><td>Unassigned</td><td><span class="badge badge-other">Refinement</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-723" target="_blank">DPDB-723</a></td><td>Lock'app user management - re-active user flow</td><td>Unassigned</td><td><span class="badge badge-other">Ready for Refinement</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+<tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-818" target="_blank">DPDB-818</a></td><td>QR validation endpoint and MetaLockers secret</td><td>Unassigned</td><td><span class="badge badge-other">Backlog</span></td><td>Jul 2, 2026 <span style="color:var(--muted)">(at planning)</span></td></tr>
+      </tbody>
+    </table>
+    <div class="footnote">Sub-tasks do not carry their own Sprint-field history — they follow the parent Story. 9 of the Jul 2 parents share one planning-day bulk-add timestamp (Jul 2, ~15:27–15:37). 11 Stopped tickets are omitted as cancelled scope.</div>
+  </div>
+</div>
+
+<!-- TAB 1: TEAM & VELOCITY -->
+<div class="content" id="tab-1">
+
+  <div class="section-title">Developer Velocity — Sprint 7</div>
+  <div class="footnote" style="margin-bottom:12px">Only tickets with hours tracked July 3 – July 17, 2026. All 31 sprint-active tickets are assigned (DPDB-856/857 Node upgrades were reassigned from Unassigned to Dan Zatloukal). QA (Patrik Brydlák, Terezie Krejčí) logged no in-window <em>Jira</em> worklogs on sprint issues this sprint (Terezie logged 5.2 h of QA time in Costlocker). Á. Páska and B. Árvay are DGITS developers — present in Jira worklogs, absent from Costlocker.</div>
+
+  <!-- Dev bars (sprint-active only) -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">Ticket completion per developer (sprint-active tickets only)</div>
+
+    <div class="dev-bar-row">
+      <div class="dev-bar-name">Á. Páska</div>
+      <div class="dev-bar-track">
+        <div class="seg-done" style="width:87.5%" title="Done: 7"></div>
+        <div class="seg-nd" style="width:12.5%" title="Near Done: 1"></div>
+      </div>
+      <div class="dev-bar-counts">7 done · 1 ND · 8 total (88%)</div>
+    </div>
+
+    <div class="dev-bar-row">
+      <div class="dev-bar-name">Dominik Roudný</div>
+      <div class="dev-bar-track">
+        <div class="seg-done" style="width:57.1%" title="Done: 4"></div>
+        <div class="seg-nd" style="width:42.9%" title="Near Done: 3"></div>
+      </div>
+      <div class="dev-bar-counts">4 done · 3 ND · 7 total (57%)</div>
+    </div>
+
+    <div class="dev-bar-row">
+      <div class="dev-bar-name">Tomáš Papírník</div>
+      <div class="dev-bar-track">
+        <div class="seg-done" style="width:83.3%" title="Done: 5"></div>
+        <div class="seg-other" style="width:16.7%" title="Other: 1"></div>
+      </div>
+      <div class="dev-bar-counts">5 done · 0 ND · 6 total (83%)</div>
+    </div>
+
+    <div class="dev-bar-row">
+      <div class="dev-bar-name">Martin Choutka</div>
+      <div class="dev-bar-track">
+        <div class="seg-done" style="width:100%" title="Done: 4"></div>
+      </div>
+      <div class="dev-bar-counts">4 done · 0 ND · 4 total (100%)</div>
+    </div>
+
+    <div class="dev-bar-row">
+      <div class="dev-bar-name">Dan Zatloukal</div>
+      <div class="dev-bar-track">
+        <div class="seg-done" style="width:100%" title="Done: 3"></div>
+      </div>
+      <div class="dev-bar-counts">3 done · 0 ND · 3 total (100%)</div>
+    </div>
+
+    <div class="dev-bar-row">
+      <div class="dev-bar-name">B. Árvay</div>
+      <div class="dev-bar-track">
+        <div class="seg-done" style="width:33.3%" title="Done: 1"></div>
+        <div class="seg-nd" style="width:66.7%" title="Near Done: 2"></div>
+      </div>
+      <div class="dev-bar-counts">1 done · 2 ND · 3 total (33%)</div>
+    </div>
+
+    <div class="footnote"><span style="display:inline-block;width:10px;height:10px;background:var(--done);border-radius:2px;margin-right:3px;vertical-align:middle"></span>Done &nbsp;<span style="display:inline-block;width:10px;height:10px;background:var(--near-done);border-radius:2px;margin-right:3px;vertical-align:middle"></span>Near Done &nbsp;<span style="display:inline-block;width:10px;height:10px;background:#334155;border-radius:2px;margin-right:3px;vertical-align:middle"></span>In Progress &nbsp;·&nbsp; Bars count tickets, not hours. Dan Zatloukal's three sprint tickets (Node upgrades + Object-Storage rename) are all Done at low Jira hours; his larger telemetry effort (29.4 h) sits in Costlocker, not Jira worklogs.</div>
+  </div>
+
+  <!-- Developer Summary Table -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">Developer Summary Table (sprint-active tickets only)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Developer</th>
+          <th>Done</th>
+          <th>ND</th>
+          <th>Total</th>
+          <th>Done %</th>
+          <th>Sprint Hours</th>
+          <th>Original Estimate</th>
+          <th>Est. Coverage</th>
+          <th>Outside sprint¹</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Á. Páska</td>
+          <td style="color:var(--done)">7</td>
+          <td style="color:var(--near-done)">1</td>
+          <td>8</td>
+          <td>88%</td>
+          <td>50.4h</td>
+          <td>60.0h</td>
+          <td>5/8</td>
+          <td>7</td>
+        </tr>
+        <tr>
+          <td>Dominik Roudný</td>
+          <td style="color:var(--done)">4</td>
+          <td style="color:var(--near-done)">3</td>
+          <td>7</td>
+          <td>57%</td>
+          <td>52.7h</td>
+          <td>104.0h</td>
+          <td>5/7</td>
+          <td>13</td>
+        </tr>
+        <tr>
+          <td>Tomáš Papírník</td>
+          <td style="color:var(--done)">5</td>
+          <td style="color:var(--near-done)">0</td>
+          <td>6</td>
+          <td>83%</td>
+          <td>36.5h</td>
+          <td>48.0h</td>
+          <td>3/6</td>
+          <td>7</td>
+        </tr>
+        <tr>
+          <td>Martin Choutka</td>
+          <td style="color:var(--done)">4</td>
+          <td style="color:var(--near-done)">0</td>
+          <td>4</td>
+          <td>100%</td>
+          <td>30.1h</td>
+          <td>88.0h</td>
+          <td>3/4</td>
+          <td>14</td>
+        </tr>
+        <tr>
+          <td>Dan Zatloukal</td>
+          <td style="color:var(--done)">3</td>
+          <td style="color:var(--near-done)">0</td>
+          <td>3</td>
+          <td>100%</td>
+          <td>1.2h</td>
+          <td>16.0h</td>
+          <td>2/3</td>
+          <td>0</td>
+        </tr>
+        <tr>
+          <td>B. Árvay</td>
+          <td style="color:var(--done)">1</td>
+          <td style="color:var(--near-done)">2</td>
+          <td>3</td>
+          <td>33%</td>
+          <td>50.7h</td>
+          <td>40.0h</td>
+          <td>3/3</td>
+          <td>7</td>
+        </tr>
+        <tr style="border-top:2px solid var(--border);font-weight:700">
+          <td>TOTAL</td>
+          <td style="color:var(--done)">24</td>
+          <td style="color:var(--near-done)">6</td>
+          <td>31</td>
+          <td>77%</td>
+          <td>221.6h</td>
+          <td>356.0h</td>
+          <td>21/31</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="footnote">¹ <strong>Outside sprint</strong> = tickets this developer has lifetime hours on but <em>zero</em> worklogs inside the Jul 3–17 window — i.e. work done in earlier sprints, carried onto the Sprint 7 board. Not counted in the sprint-active columns. Original Estimate sums <em>timeoriginalestimate</em> across sprint-active tickets — bugs contribute 0 (not estimated by design). DPDB-856/857 (Node upgrades) were reassigned from Unassigned to Dan Zatloukal, so all 31 sprint-active tickets now have an owner. Devs with only outside-sprint work this sprint (Deli Sándor, M. Vrána, Tereza Neradová, P. Brydlák) have no row here — their carried Done tickets appear in the zero-tracking table below.</div>
+  </div>
+
+  <!-- Zero-tracking table -->
+  <div class="card">
+    <div class="card-title">Zero Sprint-Hours Tickets (100) — no Jira worklog in the Jul 3 – Jul 17 window</div>
+    <div class="footnote" style="margin-top:0;margin-bottom:12px">Two distinct groups: <strong>67 Done</strong> tickets were completed and tracked in earlier sprints (carried onto Sprint 7's board via the parent Story's sprint field, not worked in-window) — shown muted. <strong>33 non-Done</strong> tickets had no sprint tracking at all. This is expected — the board carries the full feature backlog plus refinement/blocked items, not only in-flight work.</div>
+    <table class="zero-track-table">
+      <thead>
+        <tr><th>Group</th><th>Count</th><th>Breakdown</th></tr>
+      </thead>
+      <tbody>
+        <tr class="zero-done-row">
+          <td><span class="badge badge-done">Done before sprint</span></td>
+          <td>67</td>
+          <td>Delivered in Sprints 1–6 (plus DPDB-712 backend Alloy proxy, just moved to Done with no in-window hours), carried onto the Sprint 7 board but not worked in this window. Highlighted separately from the items below because these represent completed value, not stalled work.</td>
+        </tr>
+        <tr class="zero-active-row">
+          <td><span class="badge badge-stopped">No sprint tracking</span></td>
+          <td>33</td>
+          <td>Stopped 11 · Blocked by problems 4 · In Progress 4 (0h) · Refinement 4 · To be tested 3 · To Do 3 · Ready for Refinement 2 · Test 1 · Backlog 1.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="footnote">The 4 In-Progress zero-hour tickets (DPDB-828 hardware info, DPDB-568 PoSXML terminal integration, DPDB-548 buy-label T&amp;C, DPDB-507 sync locker abilities) are genuinely in flight but show 0 Jira worklogs — likely the same worklog-coverage gap flagged on the Overview tab. Confirm at review whether these are progressing.</div>
+  </div>
+
+</div>
+
+<!-- TAB 2: ESTIMATES vs ACTUAL -->
+<div class="content" id="tab-2">
+
+  <div class="section-title">Estimate vs Actual — Sprint-Active Estimated Tickets</div>
+  <div class="footnote" style="margin-bottom:16px">Only tickets with hours tracked Jul 3 – Jul 17, 2026 that have estimate &gt; 0 and lifetime spent &gt; 0 (21 tickets). Delta = (lifetime actual − estimate) / estimate × 100 — "actual" is total time ever logged on the ticket, so it may include hours before this sprint. Bugs are not estimated by design and are excluded (all 8 sprint-active bugs carried no estimate — consistent with the convention).</div>
+
+  <div class="grid-3" style="margin-bottom:20px">
+    <div class="highlight-box highlight-red">
+      <div class="highlight-title">Largest Overruns</div>
+      <div class="highlight-body">
+        DPDB-800: +204% (4h → 12.2h — connection state history)<br>
+        DPDB-794: +82% (8h → 14.6h — show all compartments)<br>
+        DPDB-793: +56% (8h → 12.4h — technician Box Check)<br>
+        DPDB-795: +43% (24h → 34.2h — open compartments / set status)<br>
+        DPDB-798: +41% (16h → 22.6h — track/expose connection status)
+      </div>
+    </div>
+    <div class="highlight-box highlight-green">
+      <div class="highlight-title">Accurate &amp; Underruns</div>
+      <div class="highlight-body">
+        DPDB-799 +8% · DPDB-778 +3% (spot on)<br>
+        DPDB-782: −37% (40h → 25.3h — audit log)<br>
+        DPDB-836: −43% · DPDB-837: −45% (screen mirroring)<br>
+        DPDB-901: −57% · DPDB-911: −96%<br>
+        DPDB-856 / 857: −94% (Node upgrades, near-trivial)
+      </div>
+    </div>
+    <div class="highlight-box highlight-blue">
+      <div class="highlight-title">Pattern — re-baseline the connectivity/compartment cluster</div>
+      <div class="highlight-body">
+        The whole <strong>technician-compartment + locker-connectivity</strong> cluster (DPDB-793/794/795/798/800) overran together — this feature area was systematically under-estimated. In contrast, the <strong>screen-mirroring</strong> work (836/837) and <strong>audit log</strong> (782) came in 37–45% under. The three near-zero underruns (856/857 Node upgrades, 911 ISO installer) were 8–16h estimates that proved trivial or barely started. Net effort was close to plan; the misses are concentrated, not systemic.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Estimated sprint-active tickets (est &gt; 0 and lifetime hours &gt; 0)</div>
+    <table>
+      <thead>
+        <tr><th>Ticket</th><th>Summary</th><th>Assignee</th><th>Type</th><th>Status</th><th>Est.</th><th>Actual</th><th>Delta</th><th>Visual</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-800" target="_blank">DPDB-800</a></td><td>Lock'Hub: Connection state history per locker</td><td>Á. Páska</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>4.0h</td><td>12.2h</td><td style="color:var(--blocked)">+204%</td><td><div class="delta-bar-wrap"><div class="delta-bar-over" style="width:100%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-794" target="_blank">DPDB-794</a></td><td>Show all compartments with their status</td><td>B. Árvay</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-nd">Peer review</span></td><td>8.0h</td><td>14.6h</td><td style="color:var(--blocked)">+82%</td><td><div class="delta-bar-wrap"><div class="delta-bar-over" style="width:82%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-793" target="_blank">DPDB-793</a></td><td>Add technician access to Box Check</td><td>B. Árvay</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>8.0h</td><td>12.4h</td><td style="color:var(--blocked)">+56%</td><td><div class="delta-bar-wrap"><div class="delta-bar-over" style="width:56%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-795" target="_blank">DPDB-795</a></td><td>Open compartments and set status: single, sequential, by range</td><td>B. Árvay</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-nd">Peer review</span></td><td>24.0h</td><td>34.2h</td><td style="color:var(--blocked)">+43%</td><td><div class="delta-bar-wrap"><div class="delta-bar-over" style="width:43%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-798" target="_blank">DPDB-798</a></td><td>Track and expose locker connection status</td><td>Á. Páska</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>16.0h</td><td>22.6h</td><td style="color:var(--blocked)">+41%</td><td><div class="delta-bar-wrap"><div class="delta-bar-over" style="width:41%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-799" target="_blank">DPDB-799</a></td><td>Add Locker status to All lockers list screen</td><td>Á. Páska</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>8.0h</td><td>8.7h</td><td style="color:var(--blocked)">+8%</td><td><div class="delta-bar-wrap"><div class="delta-bar-over" style="width:8%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-778" target="_blank">DPDB-778</a></td><td>Print label in collection flow: Send print command &amp; implement new screens</td><td>D. Roudný</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-nd">Test</span></td><td>8.0h</td><td>8.2h</td><td style="color:var(--progress)">+3%</td><td><div class="delta-bar-wrap"><div class="delta-bar-ok" style="width:3%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-854" target="_blank">DPDB-854</a></td><td>POS terminal discovery &amp; test locker setup</td><td>M. Choutka</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>24.0h</td><td>20.5h</td><td style="color:var(--done)">−15%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:15%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-902" target="_blank">DPDB-902</a></td><td>Complete Operate-compartments actions (missing states)</td><td>T. Papírník</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>16.0h</td><td>13.2h</td><td style="color:var(--done)">−18%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:18%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-766" target="_blank">DPDB-766</a></td><td>Implement detection of e-mail sending problem</td><td>D. Roudný</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>16.0h</td><td>12.8h</td><td style="color:var(--done)">−20%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:20%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-906" target="_blank">DPDB-906</a></td><td>Add connection-lost handling across flows</td><td>D. Roudný</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-nd">To be tested</span></td><td>24.0h</td><td>16.6h</td><td style="color:var(--done)">−31%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:31%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-826" target="_blank">DPDB-826</a></td><td>Receive and store locker layout on activation</td><td>T. Papírník</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-progress">In Progress</span></td><td>24.0h</td><td>16.1h</td><td style="color:var(--done)">−33%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:33%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-904" target="_blank">DPDB-904</a></td><td>FS09-model</td><td>Á. Páska</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>16.0h</td><td>10.5h</td><td style="color:var(--done)">−34%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:34%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-782" target="_blank">DPDB-782</a></td><td>Implement global Audit Log screen</td><td>D. Roudný</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>40.0h</td><td>25.3h</td><td style="color:var(--done)">−37%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:37%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-905" target="_blank">DPDB-905</a></td><td>FS-08-model</td><td>Á. Páska</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>16.0h</td><td>9.5h</td><td style="color:var(--done)">−41%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:41%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-836" target="_blank">DPDB-836</a></td><td>Capture and push Lock'App screen to backend</td><td>M. Choutka</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>40.0h</td><td>22.6h</td><td style="color:var(--done)">−43%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:43%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-837" target="_blank">DPDB-837</a></td><td>Store and display locker screen in Lock'Hub</td><td>M. Choutka</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>24.0h</td><td>13.2h</td><td style="color:var(--done)">−45%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:45%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-901" target="_blank">DPDB-901</a></td><td>Add Cancel on delivery place-parcel screen</td><td>T. Papírník</td><td><span class="badge badge-subtask">Sub-task</span></td><td><span class="badge badge-done">Done</span></td><td>8.0h</td><td>3.5h</td><td style="color:var(--done)">−57%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:57%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-857" target="_blank">DPDB-857</a></td><td>Upgrade dpdbox-locker to Node.js 24</td><td>D. Zatloukal</td><td><span class="badge badge-task">Task</span></td><td><span class="badge badge-done">Done</span></td><td>8.0h</td><td>0.5h</td><td style="color:var(--done)">−94%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:94%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-856" target="_blank">DPDB-856</a></td><td>Upgrade dpdbox-backend to Node.js 26</td><td>D. Zatloukal</td><td><span class="badge badge-task">Task</span></td><td><span class="badge badge-done">Done</span></td><td>8.0h</td><td>0.5h</td><td style="color:var(--done)">−94%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:94%"></div></div></td></tr>
+        <tr><td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-911" target="_blank">DPDB-911</a></td><td>ISO installer: prompt operator for timezone during install</td><td>D. Roudný</td><td><span class="badge badge-task">Task</span></td><td><span class="badge badge-nd">To be tested</span></td><td>16.0h</td><td>0.7h</td><td style="color:var(--done)">−96%</td><td><div class="delta-bar-wrap"><div class="delta-bar-under" style="width:96%"></div></div></td></tr>
+      </tbody>
+    </table>
+    <div class="footnote">Delta = (lifetime actual − estimate) / estimate × 100. Bugs are not estimated by design and are excluded. Visual bar width is capped at 100% for overruns above +100%. DPDB-856/857/911 show near-zero actuals against 8–16h estimates — confirm whether Node upgrades / ISO-installer work were truly this cheap or whether time was logged elsewhere.</div>
+  </div>
+
+</div><!-- /tab-2 -->
+
+<!-- TAB 3: DELIVERED -->
+<div class="content" id="tab-3">
+
+  <div class="section-title">Worked This Sprint — 31 Tickets (Jira sprint hours &gt; 0)</div>
+  <div class="footnote" style="margin-bottom:16px">All 31 tickets with hours tracked in the window Jul 3 – Jul 17, 2026: <strong>24 Done</strong> · 6 Near Done · 1 In Progress. The 67 Done tickets carried over from earlier sprints are not shown here. Done tickets below are grouped thematically.</div>
+
+  <div class="ticket-group">
+    <div class="ticket-group-title">Lock'Hub Observability &amp; Locker Connectivity — Sprint Goal (6)</div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-782" target="_blank">DPDB-782</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">Implement global Audit Log screen</span><span class="ticket-who">D. Roudný · 25.3h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-837" target="_blank">DPDB-837</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">Store and display locker screen in Lock'Hub</span><span class="ticket-who">M. Choutka · 13.2h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-836" target="_blank">DPDB-836</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">Capture and push Lock'App screen to backend</span><span class="ticket-who">M. Choutka · 12.2h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-799" target="_blank">DPDB-799</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">Add Locker status to All lockers list screen</span><span class="ticket-who">Á. Páska · 8.7h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-800" target="_blank">DPDB-800</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">Lock'Hub: Connection state history per locker</span><span class="ticket-who">Á. Páska · 8.2h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-798" target="_blank">DPDB-798</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">Track and expose locker connection status</span><span class="ticket-who">Á. Páska · 4.5h</span></div>
+  </div>
+
+  <div class="ticket-group">
+    <div class="ticket-group-title">Compartment Management &amp; Technician Flows (4)</div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-902" target="_blank">DPDB-902</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">Complete Operate-compartments actions (missing states)</span><span class="ticket-who">T. Papírník · 13.2h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-904" target="_blank">DPDB-904</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">FS09-model</span><span class="ticket-who">Á. Páska · 10.5h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-905" target="_blank">DPDB-905</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">FS-08-model</span><span class="ticket-who">Á. Páska · 9.5h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-793" target="_blank">DPDB-793</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">Add technician access to Box Check</span><span class="ticket-who">B. Árvay · 3.5h</span></div>
+  </div>
+
+  <div class="ticket-group">
+    <div class="ticket-group-title">Delivery, POS, Backend &amp; Infra (7)</div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-854" target="_blank">DPDB-854</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">POS terminal discovery &amp; test locker setup</span><span class="ticket-who">M. Choutka · 3.8h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-901" target="_blank">DPDB-901</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">Add Cancel on delivery place-parcel screen</span><span class="ticket-who">T. Papírník · 3.5h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-766" target="_blank">DPDB-766</a><span class="badge badge-subtask">Sub-task</span><span class="ticket-summary">Implement detection of e-mail sending problem</span><span class="ticket-who">D. Roudný · 2.8h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-923" target="_blank">DPDB-923</a><span class="badge badge-task">Task</span><span class="ticket-summary">Check Amber API connection analysis</span><span class="ticket-who">T. Papírník · 0.9h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-857" target="_blank">DPDB-857</a><span class="badge badge-task">Task</span><span class="ticket-summary">Upgrade dpdbox-locker to Node.js 24</span><span class="ticket-who">D. Zatloukal · 0.5h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-856" target="_blank">DPDB-856</a><span class="badge badge-task">Task</span><span class="ticket-summary">Upgrade dpdbox-backend to Node.js 26</span><span class="ticket-who">D. Zatloukal · 0.5h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-804" target="_blank">DPDB-804</a><span class="badge badge-task">Task</span><span class="ticket-summary">Rename "Version API" to "Object Storage" across backend and locker repos</span><span class="ticket-who">D. Zatloukal · 0.2h</span></div>
+  </div>
+
+  <div class="ticket-group">
+    <div class="ticket-group-title">Bug Fixes — 7 resolved this sprint (not estimated by design)</div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-883" target="_blank">DPDB-883</a><span class="badge badge-bug">Bug</span><span class="ticket-summary">Misaligned rows in Compartment Statuses table (Courier app)</span><span class="ticket-who">D. Roudný · 4.8h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-867" target="_blank">DPDB-867</a><span class="badge badge-bug">Bug</span><span class="ticket-summary">Courier arrival message not displayed on simulator (Lock'app) and physical locker</span><span class="ticket-who">Á. Páska · 4.0h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-878" target="_blank">DPDB-878</a><span class="badge badge-bug">Bug</span><span class="ticket-summary">Manual box opening/closing by Driver 2 is not recorded in the box history</span><span class="ticket-who">D. Roudný · 2.3h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-851" target="_blank">DPDB-851</a><span class="badge badge-bug">Bug</span><span class="ticket-summary">Expired parcel shown in collection flow but missing in box layout (Returning state)</span><span class="ticket-who">T. Papírník · 1.8h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-876" target="_blank">DPDB-876</a><span class="badge badge-bug">Bug</span><span class="ticket-summary">Wrong locker substitution order: larger size offered before another locker of the same size</span><span class="ticket-who">T. Papírník · 1.1h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-875" target="_blank">DPDB-875</a><span class="badge badge-bug">Bug</span><span class="ticket-summary">[Box history] Wrong "User" — shows "System" instead of "Courier"</span><span class="ticket-who">Á. Páska · 1.0h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-882" target="_blank">DPDB-882</a><span class="badge badge-bug">Bug</span><span class="ticket-summary">Missing translation for box history event 'boxmarkedclean'</span><span class="ticket-who">M. Choutka · 1.0h</span></div>
+  </div>
+
+  <!-- Near Done -->
+  <div class="section-title">Near Done — 6 Tickets (Peer review / To be tested / Test)</div>
+  <div class="ticket-group">
+    <div class="ticket-group-title" style="color:var(--near-done);border-color:var(--near-done);background:rgba(245,158,11,.06)">Almost there — close early in Sprint 8</div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-795" target="_blank">DPDB-795</a><span class="badge badge-subtask">Sub-task</span><span class="badge badge-nd" style="font-size:10px">Peer review</span><span class="ticket-summary">Open compartments and set status: single, sequential, by range</span><span class="ticket-who">B. Árvay · 34.2h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-906" target="_blank">DPDB-906</a><span class="badge badge-subtask">Sub-task</span><span class="badge badge-nd" style="font-size:10px">To be tested</span><span class="ticket-summary">Add connection-lost handling across flows</span><span class="ticket-who">D. Roudný · 16.6h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-794" target="_blank">DPDB-794</a><span class="badge badge-subtask">Sub-task</span><span class="badge badge-nd" style="font-size:10px">Peer review</span><span class="ticket-summary">Show all compartments with their status</span><span class="ticket-who">B. Árvay · 13.1h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-874" target="_blank">DPDB-874</a><span class="badge badge-bug">Bug</span><span class="badge badge-nd" style="font-size:10px">Peer review</span><span class="ticket-summary">[Box history] Wrong "occurredAt" timestamp breaks ordering of locker history</span><span class="ticket-who">Á. Páska · 4.0h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-911" target="_blank">DPDB-911</a><span class="badge badge-task">Task</span><span class="badge badge-nd" style="font-size:10px">To be tested</span><span class="ticket-summary">ISO installer: prompt operator for timezone during install</span><span class="ticket-who">D. Roudný · 0.7h</span></div>
+    <div class="ticket-row"><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-778" target="_blank">DPDB-778</a><span class="badge badge-subtask">Sub-task</span><span class="badge badge-nd" style="font-size:10px">Test</span><span class="ticket-summary">Print label in collection flow: Send print command &amp; implement new screens</span><span class="ticket-who">D. Roudný · 0.2h</span></div>
+  </div>
+
+  <div class="footnote">Observability/telemetry work: DPDB-712 (backend Alloy OTLP proxy) reached Done this sprint; DPDB-711 (Grafana Alloy OTLP shipping) is still To-be-tested. All show 0 in-window Jira worklogs — they appear in the zero-tracking table. Dan Zatloukal's 29.4 h of Costlocker time this window maps to this telemetry cluster.</div>
+
+</div>
+
+<!-- TAB 4: BLOCKERS & RISKS -->
+<div class="content" id="tab-4">
+
+  <div class="section-title">Sprint-Level Blockers (Blocked by problems — 4 tickets)</div>
+
+  <div class="card" style="margin-bottom:20px">
+    <table>
+      <thead>
+        <tr><th>Ticket</th><th>Summary</th><th>Assignee</th><th>Type</th><th>Sprint Hours</th><th>Action Needed</th></tr>
+      </thead>
+      <tbody>
+        <tr class="risk-row risk-high">
+          <td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-687" target="_blank">DPDB-687</a></td>
+          <td>Meta-API shipment creation for the buy-label flow</td>
+          <td>D. Roudný</td>
+          <td><span class="badge badge-subtask">Sub-task</span></td>
+          <td>0h</td>
+          <td><strong>Blocked for a 3rd consecutive sprint</strong> (S5 → S6 → S7). On the critical path to closing the buy-label flow. This is now an escalation item, not a carry-over — needs a DIGITS decision this week.</td>
+        </tr>
+        <tr class="risk-row risk-medium">
+          <td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-827" target="_blank">DPDB-827</a></td>
+          <td>Show locker layout in Lock'Hub detail</td>
+          <td>Unassigned</td>
+          <td><span class="badge badge-subtask">Sub-task</span></td>
+          <td>0h</td>
+          <td>Depends on DPDB-826 (receive/store locker layout on activation, still In Progress). Unassigned — give it an owner once DPDB-826 lands.</td>
+        </tr>
+        <tr class="risk-row risk-medium">
+          <td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-789" target="_blank">DPDB-789</a></td>
+          <td>Price for Upgrade box</td>
+          <td>Unassigned</td>
+          <td><span class="badge badge-subtask">Sub-task</span></td>
+          <td>0h</td>
+          <td>Was blocked pending the payment-gateway decision — now <strong>confirmed out of scope</strong>. Re-scope: confirm whether upgrade-box pricing is still needed via the POS terminal, or drops out with the online gateway.</td>
+        </tr>
+        <tr class="risk-row risk-medium">
+          <td><a class="ticket-key" href="https://geopostgroup.atlassian.net/browse/DPDB-855" target="_blank">DPDB-855</a></td>
+          <td>Cancel expired/abandoned pre-auths (pending pre-auth cleanup)</td>
+          <td>M. Choutka</td>
+          <td><span class="badge badge-subtask">Sub-task</span></td>
+          <td>0h</td>
+          <td>Carried from Sprint 6 as Blocked (now owned by M. Choutka). Tied to online card pre-authorisation — which follows the <strong>now out-of-scope</strong> payment gateway. Likely drops out of scope; confirm and de-scope or re-target to the POS terminal.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="footnote">Also note the 5 In-Progress tickets on the board: DPDB-826 (16.1h, sprint-active, still mid-implementation) plus 4 with 0 in-window Jira worklogs — DPDB-828 (hardware info), DPDB-568 (PoSXML terminal integration), DPDB-548 (buy-label T&amp;C), DPDB-507 (sync locker abilities). Those last four are the POS/payment/connectivity thread carrying into Sprint 8.</div>
+  </div>
+
+  <div class="section-title">Project-Level Blockers &amp; Risks</div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+    <div class="highlight-box highlight-green">
+      <div class="highlight-title">✅ CRM / MDM — UNBLOCKED &amp; DELIVERING</div>
+      <div class="highlight-body">CRM = Pickup Services CRM, connected via MDM. MDM remains active scope. Lock'Hub observability built on this foundation delivered this sprint (audit log, connection status, screen mirroring). No change to blocker status.</div>
+    </div>
+
+    <div class="highlight-box highlight-red">
+      <div class="highlight-title">⚠ Meta-API Shipment Creation (DPDB-687) — BLOCKED 3 SPRINTS RUNNING</div>
+      <div class="highlight-body">Blocked in Sprints 5, 6 and now 7 with 0h logged each window. On the buy-label critical path. This is the single most persistent delivery blocker and should be escalated to DIGITS (Tamas Foldesi) for a resolution decision — repeated carry-over is masking a dependency that isn't being resolved.</div>
+    </div>
+
+    <div class="highlight-box highlight-amber">
+      <div class="highlight-title">POS Terminal &amp; Ingenico Certification — Discovery Done, Certification Planning Kicked Off</div>
+      <div class="highlight-body">Progress this sprint: POS terminal discovery + test locker setup (DPDB-854) Done; PoSXML payment integration (DPDB-568) moved to In Progress. <strong>Ingenico certification planning has started</strong> — the first informational kick-off was held Jul 14 and initial action steps were agreed. Still gated on Hansab terminal delivery and the certification runway (+4–6 weeks); track the agreed action steps to the next kick-off. Critical-path item for Oct 1, but now moving.</div>
+    </div>
+
+    <div class="highlight-box highlight-green">
+      <div class="highlight-title">✅ Online Payment Gateway — OUT OF SCOPE (confirmed)</div>
+      <div class="highlight-body">The online payment gateway (SaferPay / Worldline) is <strong>confirmed out of scope</strong> for BALTICS — this long-standing "overdue decision" is now closed. Payment at the locker runs via the POS terminal (PoSXML), not an online card gateway. Follow-up: re-scope the two tickets that were blocked on it — DPDB-789 (upgrade-box pricing) and DPDB-855 (pre-auth cleanup) — since online-card pre-authorisation likely drops out with it.</div>
+    </div>
+
+    <div class="highlight-box highlight-red">
+      <div class="highlight-title">⚠ Capacity / runway figure is stale</div>
+      <div class="highlight-body">Standing project context (last updated May 7) cites ~13 sprints / 585 MD remaining to Oct 1. As of Sprint 7 close (Jul 17), only <strong>~5 two-week sprints (~225 MD)</strong> actually remain. If the 800–980 MD scope estimate still held, the deficit would be far worse than −215/−395 MD — but a large share of that scope has since been delivered. <strong>Re-baseline both remaining scope and sprint count with steering before Sprint 8 planning.</strong></div>
+    </div>
+
+    <div class="highlight-box highlight-amber">
+      <div class="highlight-title">Jira worklog coverage gap (new this review)</div>
+      <div class="highlight-body">Per-ticket Jira worklogs captured only 221.6h while Costlocker + DGITS Jira-only devs indicate ~300+h of real effort. DGITS devs aren't in Costlocker; several Qest devs (notably Dan Zatloukal, 29.4h) logged to Costlocker but not to Jira in-window. Sprint burn can't be read reliably from one source. Agree a single source of truth for per-ticket time.</div>
+    </div>
+  </div>
+
+  <div class="section-title">Risk Register Summary</div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th>Risk</th><th>Level</th><th>Owner</th><th>Status</th><th>Impact</th></tr>
+      </thead>
+      <tbody>
+        <tr class="risk-row risk-high">
+          <td>Meta-API shipment creation blocked (DPDB-687)</td>
+          <td><span class="badge badge-blocked">HIGH</span></td>
+          <td>D. Roudný + DIGITS</td>
+          <td>Blocked 3 sprints running</td>
+          <td>Prevents closing the buy-label flow — recurring, needs escalation not carry-over</td>
+        </tr>
+        <tr class="risk-row risk-high">
+          <td>Capacity vs remaining scope — figure stale</td>
+          <td><span class="badge badge-blocked">CRITICAL</span></td>
+          <td>Steering</td>
+          <td>Needs re-validation</td>
+          <td>Only ~5 sprints (~225 MD) remain to Oct 1, not the ~13 sprints in the standing context — re-baseline scope & runway</td>
+        </tr>
+        <tr class="risk-row risk-medium">
+          <td>POS terminal / Ingenico certification</td>
+          <td><span class="badge badge-nd">MEDIUM</span></td>
+          <td>BALTICS BU</td>
+          <td>Cert planning kicked off (Jul 14)</td>
+          <td>First info kick-off held, action steps agreed; still gated on Hansab hardware + cert runway (+4–6 wks) — track to next kick-off</td>
+        </tr>
+        <tr class="risk-row risk-low">
+          <td>Online payment gateway — resolved (out of scope)</td>
+          <td><span class="badge badge-done">CLOSED</span></td>
+          <td>BALTICS BU</td>
+          <td>Confirmed out of scope</td>
+          <td>No longer a blocker; payment runs via POS terminal. Re-scope DPDB-789/855 which were blocked on it</td>
+        </tr>
+        <tr class="risk-row risk-medium">
+          <td>Jira worklog coverage gap</td>
+          <td><span class="badge badge-nd">MEDIUM</span></td>
+          <td>PM (Jakub) + Tech Leads</td>
+          <td>Observed this sprint</td>
+          <td>Sprint burn unreadable from one source; DGITS devs absent from Costlocker, some Qest devs absent from Jira worklogs</td>
+        </tr>
+        <tr class="risk-row risk-medium">
+          <td>Connectivity/compartment estimates too low</td>
+          <td><span class="badge badge-nd">MEDIUM</span></td>
+          <td>Tech Leads + PM</td>
+          <td>Observed this sprint</td>
+          <td>DPDB-800 +204%, 794/793/795/798 all over — re-baseline the compartment/connectivity area for Sprint 8</td>
+        </tr>
+        <tr class="risk-row risk-medium">
+          <td>VPN/connectivity architecture POC</td>
+          <td><span class="badge badge-nd">MEDIUM</span></td>
+          <td>DIGITS + Qest</td>
+          <td>POC in progress</td>
+          <td>Affects locker connectivity reliability, incl. the connection-status work delivered this sprint</td>
+        </tr>
+        <tr class="risk-row risk-low">
+          <td>Rollout Strategy — overdue since May 30</td>
+          <td><span class="badge badge-nd">MEDIUM</span></td>
+          <td>TBD</td>
+          <td>Not started</td>
+          <td>Blocks deployment planning</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TAB 5: AGENDA -->
+<div class="content" id="tab-5">
+  <div class="section-title">Sprint Review Meeting — Agenda <span style="font-size:12px;font-weight:600;color:var(--muted);margin-left:8px">30 min · 09:00–09:30</span></div>
+  <div class="card">
+    <div class="agenda-item">
+      <div class="agenda-time">09:00</div>
+      <div class="agenda-topic">
+        <div class="agenda-topic-title">Welcome &amp; Sprint Overview <span style="color:var(--muted);font-weight:400">(4 min)</span></div>
+        <div class="agenda-topic-sub">KPIs: 24 Done (77.4%), 6 Near Done, 96.8% Done+ND. Sprint goal — Lock'Hub observability ✓ delivered; compartment ops delivered / in review. One-line note on the Jira-vs-Costlocker hours reconciliation.</div>
+      </div>
+      <div class="agenda-owner">PM (Jakub)</div>
+    </div>
+    <div class="agenda-item">
+      <div class="agenda-time">09:04</div>
+      <div class="agenda-topic">
+        <div class="agenda-topic-title">Demos — Observability + Compartment Ops &amp; Box History <span style="color:var(--muted);font-weight:400">(9 min)</span></div>
+        <div class="agenda-topic-sub">Audit Log screen, connection-status tracking + All-lockers view, Lock'App→Lock'Hub screen mirroring; operate-compartments &amp; technician Box-Check; box-history correctness fixes. Keep tight — 2 quick flows each.</div>
+      </div>
+      <div class="agenda-owner">Dev team</div>
+    </div>
+    <div class="agenda-item">
+      <div class="agenda-time">09:13</div>
+      <div class="agenda-topic">
+        <div class="agenda-topic-title">Velocity, Estimates &amp; Tracking <span style="color:var(--muted);font-weight:400">(5 min)</span></div>
+        <div class="agenda-topic-sub">Per-dev Done%. Connectivity/compartment cluster overran (DPDB-800 +204%); re-baseline for Sprint 8. Single source of truth for per-ticket hours (221.6h Jira vs ~300+h real effort).</div>
+      </div>
+      <div class="agenda-owner">PM (Jakub)</div>
+    </div>
+    <div class="agenda-item">
+      <div class="agenda-time">09:18</div>
+      <div class="agenda-topic">
+        <div class="agenda-topic-title">Scope &amp; Sprint Add Timing <span style="color:var(--muted);font-weight:400">(4 min)</span></div>
+        <div class="agenda-topic-sub">16/19 open tickets were committed at planning; only 3 added mid-sprint (DPDB-828/829 pulled from Sprint 8 on Jul 14, DPDB-924 created Jul 13) — not full-sprint commitments. Open backlog carrying to Sprint 8.</div>
+      </div>
+      <div class="agenda-owner">PM (Jakub)</div>
+    </div>
+    <div class="agenda-item">
+      <div class="agenda-time">09:22</div>
+      <div class="agenda-topic">
+        <div class="agenda-topic-title">Blockers &amp; Risks <span style="color:var(--muted);font-weight:400">(6 min)</span></div>
+        <div class="agenda-topic-sub">DPDB-687 blocked 3 sprints running — escalate to DIGITS. POS/Ingenico certification kicked off (Jul 14). Payment gateway confirmed out of scope → re-scope DPDB-789/855. Capacity: only ~5 sprints to Oct 1 — re-validate.</div>
+      </div>
+      <div class="agenda-owner">PM (Jakub) + Stakeholders</div>
+    </div>
+    <div class="agenda-item">
+      <div class="agenda-time">09:28</div>
+      <div class="agenda-topic">
+        <div class="agenda-topic-title">Sprint 8 Preview, Actions &amp; Close <span style="color:var(--muted);font-weight:400">(2 min)</span></div>
+        <div class="agenda-topic-sub">Close 6 Near-Done tickets; escalate DPDB-687; land DPDB-826 → unblock DPDB-827. Confirm owners on action items.</div>
+      </div>
+      <div class="agenda-owner">PM (Jakub) + Tech Leads</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">Action Items from This Review</div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Action</th><th>Owner</th><th>Due</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Escalate DPDB-687 (Meta-API shipment creation) to DIGITS — blocked 3 consecutive sprints, on buy-label critical path</td><td>D. Roudný + Tamas Foldesi</td><td>This week</td></tr>
+        <tr><td>2</td><td>Close the Jira-worklog coverage gap — agree a single source of truth for per-ticket time (DGITS devs + Dan Z. logging)</td><td>PM (Jakub) + Tech Leads</td><td>Sprint 8 start</td></tr>
+        <tr><td>3</td><td>Re-baseline capacity vs scope — real remaining runway to Oct 1 is ~5 sprints (~225 MD), not 13</td><td>PM + Romain</td><td>Before Sprint 8 planning</td></tr>
+        <tr><td>4</td><td>Ingenico certification: track the action steps agreed at the Jul 14 kick-off to the next kick-off; confirm Hansab POS terminal delivery date</td><td>BALTICS BU</td><td>Next kick-off</td></tr>
+        <tr><td>5</td><td>Payment gateway confirmed out of scope — re-scope the two tickets that were blocked on it: DPDB-789 (upgrade-box pricing) &amp; DPDB-855 (pre-auth cleanup)</td><td>PM (Jakub) + BALTICS BU</td><td>Sprint 8 planning</td></tr>
+        <tr><td>6</td><td>Re-baseline compartment/connectivity estimates (DPDB-800 +204%; 793/794/795/798 all over)</td><td>Tech Leads + PM</td><td>Sprint 8 planning</td></tr>
+        <tr><td>7</td><td>Land DPDB-826 (locker layout on activation) to unblock DPDB-827 (layout in Lock'Hub detail); assign owner to 827</td><td>T. Papírník + PM</td><td>Sprint 8 start</td></tr>
+        <tr><td>8</td><td>Close 6 Near-Done tickets (compartment ops, connection-lost handling, box-history timestamp fix, print-label, ISO installer)</td><td>Dev team + QA</td><td>Sprint 8 start</td></tr>
+        <tr><td>9</td><td>VPN/connectivity POC — provide completion date; underpins the connection-status work delivered this sprint</td><td>DIGITS + Qest</td><td>Sprint 8</td></tr>
+        <tr><td>10</td><td>Rollout Strategy — assign owner and start document</td><td>TBD</td><td>OVERDUE</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function switchTab(n) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n));
+  document.querySelectorAll('.content').forEach((c,i) => c.classList.toggle('active', i===n));
+}
+</script>
+</body>
+</html>
